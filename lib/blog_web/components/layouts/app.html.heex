@@ -1,0 +1,28 @@
+<div class="flex">
+  <!-- Main content -->
+  <div class="flex-1 w-full bg-white lg:ml-64">
+    <header class="bg-white text-gray-900 p-4 flex justify-between items-center shadow-md fixed top-0 left-0 w-full z-50">
+      <div class="flex items-center">
+        <button id="menu-button" class="text-gray-900 lg:hidden mr-4 focus:outline-none">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+          </svg>
+        </button>
+        <a href="/" class="flex items-center">
+          <span class="text-lg font-semibold">dev</span>
+        </a>
+      </div>
+      <div class="flex items-center space-x-6">
+        <a href="/add" class="bg-gray-900 text-white py-1 px-4 rounded-lg hover:bg-gray-700">New post</a>
+      </div>
+    </header>
+
+    <main class="pt-24 px-4 py-20 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-6xl">
+        <.flash_group flash={@flash} />
+        <%= @inner_content %>
+      </div>
+    </main>
+  </div>
+</div>
+
