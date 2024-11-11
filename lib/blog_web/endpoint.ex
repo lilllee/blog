@@ -50,4 +50,7 @@ defmodule BlogWeb.Endpoint do
   plug Plug.Head
   plug Plug.Session, @session_options
   plug BlogWeb.Router
+
+  # Define a plug that will be called for all requests
+  plug RemoteIp, headers: ["fly-client-ip"]
 end

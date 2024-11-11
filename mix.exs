@@ -64,6 +64,8 @@ defmodule Blog.MixProject do
       {:earmark, "~> 1.4.46"},
       {:mdex, "~> 0.2"}, # https://github.com/leandrocp/mdex docs
       {:html_sanitize_ex, "~> 1.4.2"}, # https://github.com/leandrocp/mdex docs
+      {:remote_ip, "~> 1.2.0"}, #https://hexdocs.pm/remote_ip/RemoteIp.html#module-usage
+      {:phoenix_analytics, "~> 0.2"}
     ]
   end
 

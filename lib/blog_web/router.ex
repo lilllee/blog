@@ -8,6 +8,12 @@ defmodule BlogWeb.Router do
     plug :put_root_layout, html: {BlogWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :put_user_ip_to_session
+  end
+
+  defp put_user_ip_to_session(conn, _) do
+    remote_ip = conn.remote_ip |> :inet.ntoa() |> to_string()
+    put_session(conn, :remote_ip, remote_ip)
   end
 
   pipeline :api do
@@ -26,6 +32,8 @@ defmodule BlogWeb.Router do
     live "/item/:id", NoteLive, :show
     live "/add", PageController, :add
     live "/list/:sort", PageController, :list
+    live "/logs", LogLive, :logs
+    live "/chats", ChatLive, :chat
   end
 
   # Other scopes may use custom stacks.

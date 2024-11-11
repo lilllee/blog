@@ -1,7 +1,7 @@
 defmodule BlogWeb.PageController do
   use BlogWeb, :live_view
-
   alias Blog.NoteData
+  alias BlogWeb.{ActiveLog, Scope}
 
   # :controller 는 HTTP 요청을 처리하고 응답을 반환
   # :live_view 는 사용자 인터페이스를 렌더링하고 사용자와 상호작용
@@ -61,27 +61,13 @@ defmodule BlogWeb.PageController do
         <% end %>
       </div>
     </div>
-    <.modal
-      :if={@live_action in [:add]}
-      id="post-modal"
-      show
-      on_cancel={JS.patch(~p"/")}
-    >
-      <.live_component
-        module={BlogWeb.FormComponent}
-        id={:add}
-        input={:test}
-        title={@page_title}
-        action={@live_action}
-        patch={~p"/"}
-      />
-    </.modal>
     """
   end
 
-  def mount(_params, _session, socket) do
+  def mount(_params, %{"remote_ip" => remote_ip}, socket) do
+    scope = %Scope{current_ip: remote_ip}
     notes = NoteData.get_all_content()
-    {:ok, assign(socket, note: notes, sort_order: :desc)}
+    {:ok, assign(socket, remote_ip: remote_ip, note: notes, sort_order: :desc, scope: scope)}
   end
 
   def handle_params(params, _uri, socket) do
@@ -96,6 +82,7 @@ defmodule BlogWeb.PageController do
     else
       Enum.sort_by(notes, & &1.inserted_at, &>=/2)
     end
+    ActiveLog.log("list", "정렬 이벤트", socket.assigns.scope, "N/A")
     assign(socket, note: notes, sort_order: if socket.assigns.sort_order == :desc do :asc else :desc end )
   end
 
@@ -103,12 +90,8 @@ defmodule BlogWeb.PageController do
     socket
   end
 
-  defp apply_action(socket, :add, _params) do
-    socket
-    |> assign(:page_title, "New Post")
-  end
-
   def handle_event("update_input", %{"value" => value}, socket) do
+    ActiveLog.log("update_input", "검색 이벤트", socket.assigns.scope, value)
     notes = NoteData.get_content_by_title([title: value])
     {:noreply, assign(socket, note: notes)}
   end
