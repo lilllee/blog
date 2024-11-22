@@ -44,3 +44,5 @@ node_modules/*
 # picomatch 무시
 node_modules/picomatch
 
+# .xml 파일 무시
+*.xml
