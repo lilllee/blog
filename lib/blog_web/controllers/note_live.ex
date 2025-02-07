@@ -1,7 +1,6 @@
 defmodule BlogWeb.NoteLive do
   use BlogWeb, :live_view
-
-  alias Blog.NoteData
+  alias BlogWeb.{DuckComponents}
 
   def render(assigns) do
     ~H"""
@@ -15,23 +14,13 @@ defmodule BlogWeb.NoteLive do
   end
 
   def mount(%{"id" => id}, _session, socket) do
-    db = Duckdbex.open() |> elem(1)
-    conn = Duckdbex.connection(db) |> elem(1)
-    post = case Duckdbex.query( conn, """
-        CREATE TABLE note AS
-        SELECT * FROM read_csv_auto(
-          'note.csv',
-          delim='|',
-          quote='"',
-          escape='"',
-          header=true,
-          ignore_errors=true,
-          null_padding=true,
-          all_varchar=true
-        )
-    """) do
+
+    duck_compoent = DuckComponents.init_duck_db(%{table_nm: "note"}) |> elem(1)
+    # db = Duckdbex.open() |> elem(1)
+    # conn = Duckdbex.connection(db) |> elem(1)
+    post = case duck_compoent.table do
       {:ok, _result} ->
-        case Duckdbex.query(conn, Enum.join(["SELECT id, title, content, imagePath from note where id=", id])) do
+        case Duckdbex.query(duck_compoent.conn, Enum.join(["SELECT id, title, content, imagePath from note where id=", id])) do
            {:ok, query_result} ->
             query_result
             |> Duckdbex.fetch_all()

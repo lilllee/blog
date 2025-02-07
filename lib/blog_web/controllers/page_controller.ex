@@ -1,6 +1,6 @@
 defmodule BlogWeb.PageController do
   use BlogWeb, :live_view
-  alias BlogWeb.{Scope}
+  alias BlogWeb.{Scope, DuckComponents}
 
   # :controller 는 HTTP 요청을 처리하고 응답을 반환
   # :live_view 는 사용자 인터페이스를 렌더링하고 사용자와 상호작용
@@ -65,39 +65,28 @@ defmodule BlogWeb.PageController do
   def mount(_params, %{"remote_ip" => remote_ip}, socket) do
     scope = %Scope{current_ip: remote_ip}
 
-    db = Duckdbex.open() |> elem(1)
-    conn = Duckdbex.connection(db) |> elem(1)
+    {:ok, component} = DuckComponents.init_duck_db(%{table_nm: "note"})
 
     notes =
-      case Duckdbex.query(conn, """
-        CREATE TABLE note AS
-        SELECT * FROM read_csv_auto(
-          'note.csv',
-          delim='|',
-          quote='"',
-          escape='"',
-          header=true,
-          ignore_errors=true,
-          null_padding=true,
-          all_varchar=true
-        )
-      """) do
-        {:ok, _result} ->
-          case Duckdbex.query(conn, "SELECT * FROM note") do
-            {:ok, query_result} ->
-              query_result
-              |> Duckdbex.fetch_all()
-              |> Enum.map(fn [id, title, content, imagePath, insertedAt, tags] ->
-                %{id: id, title: title, content: content, imagePath: imagePath, inserted_at: insertedAt, tags: tags}
-              end)
-            {:error, err} ->
-              IO.inspect(err, label: "SELECT ERROR")
-              []
-          end
+      case Duckdbex.query(component.conn, "SELECT * FROM note") do
+        {:ok, query_result} ->
+          query_result
+          |> Duckdbex.fetch_all()
+          |> Enum.map(fn [id, title, content, imagePath, insertedAt, tags] ->
+            %{
+              id: id,
+              title: title,
+              content: content,
+              imagePath: imagePath,
+              inserted_at: insertedAt,
+              tags: tags
+            }
+          end)
         {:error, err} ->
-          IO.inspect(err, label: "CREATE TABLE ERROR")
+          IO.inspect(err, label: "SELECT 에러")
           []
       end
+
 
     {:ok, assign(socket, remote_ip: remote_ip, sort_order: :desc, note: notes, scope: scope)}
   end
