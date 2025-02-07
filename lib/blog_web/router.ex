@@ -30,10 +30,10 @@ defmodule BlogWeb.Router do
     live "/", PageController, :home
     live "/list", PageController, :list
     live "/item/:id", NoteLive, :show
-    live "/add", PageController, :add
-    live "/list/:sort", PageController, :list
-    live "/logs", LogLive, :logs
-    live "/chats", ChatLive, :chat
+    # live "/add", PageController, :add
+    # live "/list/:sort", PageController, :list
+    # live "/logs", LogLive, :logs
+    # live "/chats", ChatLive, :chat
   end
 
   # Other scopes may use custom stacks.

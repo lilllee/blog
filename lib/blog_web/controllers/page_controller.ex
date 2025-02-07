@@ -1,7 +1,6 @@
 defmodule BlogWeb.PageController do
   use BlogWeb, :live_view
-  alias Blog.NoteData
-  alias BlogWeb.{ActiveLog, Scope}
+  alias BlogWeb.{Scope}
 
   # :controller 는 HTTP 요청을 처리하고 응답을 반환
   # :live_view 는 사용자 인터페이스를 렌더링하고 사용자와 상호작용
@@ -9,7 +8,6 @@ defmodule BlogWeb.PageController do
     ~H"""
     <div id="home" class="space-y-5">
       <.header>
-        <h1 class="text-4xl font-bold text-center">dev</h1>
         <div class="flex items-center space-x-6">
           <div class="relative">
             <input type="text" placeholder="Search"
@@ -39,10 +37,10 @@ defmodule BlogWeb.PageController do
         <%= for n <- @note do %>
           <.link href={~p"/item/#{n.id}"}>
             <div class="note-item border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition transform group">
-              <img src='https://res.cloudinary.com/daily-now/image/upload/f_auto,q_auto/v1/posts/dad187517df28299613ac0ac4caa1194?_a=AQAEuj9' alt="Note Image"
+              <img phx-track-static src={~p"/images/#{n.imagePath}"} alt="Note Image"
                   class="w-full h-60 object-cover hover:rotate-1 hover:scale- transition-transform duration-300" />
               <div class="p-4">
-                <span class="block text-sm font-semibold text-blue-600 mb-1">#테스트, #테스트2</span>
+                <span class="block text-sm font-semibold text-blue-600 mb-1"><%= n.tags %></span>
                 <h2 class="text-xl font-bold mb-2">
                   <%= n.title %>
                 </h2>
@@ -52,7 +50,7 @@ defmodule BlogWeb.PageController do
                 <div class="flex items-center">
                   <div>
                     <p class="text-sm font-semibold text-gray-900">junho</p>
-                    <p class="text-xs text-gray-500"><%= Date.to_string(n.inserted_at) %></p>
+                    <p class="text-xs text-gray-500"><%= n.inserted_at %></p>
                   </div>
                 </div>
               </div>
@@ -66,8 +64,42 @@ defmodule BlogWeb.PageController do
 
   def mount(_params, %{"remote_ip" => remote_ip}, socket) do
     scope = %Scope{current_ip: remote_ip}
-    notes = NoteData.get_all_content()
-    {:ok, assign(socket, remote_ip: remote_ip, note: notes, sort_order: :desc, scope: scope)}
+
+    db = Duckdbex.open() |> elem(1)
+    conn = Duckdbex.connection(db) |> elem(1)
+
+    notes =
+      case Duckdbex.query(conn, """
+        CREATE TABLE note AS
+        SELECT * FROM read_csv_auto(
+          'note.csv',
+          delim='|',
+          quote='"',
+          escape='"',
+          header=true,
+          ignore_errors=true,
+          null_padding=true,
+          all_varchar=true
+        )
+      """) do
+        {:ok, _result} ->
+          case Duckdbex.query(conn, "SELECT * FROM note") do
+            {:ok, query_result} ->
+              query_result
+              |> Duckdbex.fetch_all()
+              |> Enum.map(fn [id, title, content, imagePath, insertedAt, tags] ->
+                %{id: id, title: title, content: content, imagePath: imagePath, inserted_at: insertedAt, tags: tags}
+              end)
+            {:error, err} ->
+              IO.inspect(err, label: "SELECT ERROR")
+              []
+          end
+        {:error, err} ->
+          IO.inspect(err, label: "CREATE TABLE ERROR")
+          []
+      end
+
+    {:ok, assign(socket, remote_ip: remote_ip, sort_order: :desc, note: notes, scope: scope)}
   end
 
   def handle_params(params, _uri, socket) do
@@ -76,13 +108,15 @@ defmodule BlogWeb.PageController do
 
   # sorting_event
   defp apply_action(socket, :list, _params) do
+    db = Duckdbex.open() |> elem(1)
+    _conn = Duckdbex.connection(db) |> elem(1)
+
     notes = socket.assigns.note
     notes = if socket.assigns.sort_order == :asc do
       Enum.sort_by(notes, & &1.inserted_at)
     else
       Enum.sort_by(notes, & &1.inserted_at, &>=/2)
     end
-    ActiveLog.log("list", "정렬 이벤트", socket.assigns.scope, "N/A")
     assign(socket, note: notes, sort_order: if socket.assigns.sort_order == :desc do :asc else :desc end )
   end
 
@@ -91,9 +125,10 @@ defmodule BlogWeb.PageController do
   end
 
   def handle_event("update_input", %{"value" => value}, socket) do
-    ActiveLog.log("update_input", "검색 이벤트", socket.assigns.scope, value)
-    notes = NoteData.get_content_by_title([title: value])
-    {:noreply, assign(socket, note: notes)}
+
+    # ActiveLog.log("update_input", "검색 이벤트", socket.assigns.scope, value)
+    # notes = NoteData.get_content_by_title([title: value])
+    {:noreply, assign(socket, value)}
   end
 
 end

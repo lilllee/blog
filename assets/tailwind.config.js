@@ -8,7 +8,7 @@ module.exports = {
     "./js/**/*.js",
     "../lib/blog_web.ex",
     "../lib/blog_web/**/*.*ex",
-    "../node_modules/flowbite/**/*.js" // Flowbite 경로 추가
+    "./node_modules/flowbite/**/*.js" // Flowbite 경로 추가
   ],
   theme: {
     extend: {

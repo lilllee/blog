@@ -22,7 +22,7 @@ defmodule BlogWeb.LogLive do
 
     def mount(_params, _session, socket) do
       Phoenix.PubSub.subscribe(Blog.PubSub, "activity_logs")
-      ActiveLog.log("LogLive", "로그 페이지", %Scope{}, "")
+      # ActiveLog.log("LogLive", "로그 페이지", %Scope{}, "")
       {:ok, assign(socket, logs: ActiveLog.get_logs())}
     end
 

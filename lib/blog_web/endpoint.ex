@@ -23,15 +23,14 @@ defmodule BlogWeb.Endpoint do
     at: "/",
     from: :blog,
     gzip: false,
-    only: BlogWeb.static_paths()
+    only: ~w(assets fonts images favicon.ico robots.txt)
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
   if code_reloading? do
     socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
     plug Phoenix.LiveReloader
-    plug Phoenix.CodeReloader
-    plug Phoenix.Ecto.CheckRepoStatus, otp_app: :blog
+    plug Phoenix.CodeReloader, otp_app: :blog
   end
 
   plug Phoenix.LiveDashboard.RequestLogger,

@@ -36,6 +36,7 @@ defmodule BlogWeb do
     end
   end
 
+  @spec controller() :: {:__block__, [], [{:import, [...], [...]} | {:use, [...], [...]}, ...]}
   def controller do
     quote do
       use Phoenix.Controller,
