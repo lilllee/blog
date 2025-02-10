@@ -23,7 +23,7 @@ defmodule BlogWeb.PageController do
           </div>
         </div>
       </.header>
-      <div style="display: flex; align-items: center;">
+      <%!-- <div style="display: flex; align-items: center;">
         정렬
         <.link patch={~p"/list?sort=#{@sort_order}"} alt="Sort by date">
           <%= if @sort_order == :asc do %>
@@ -32,7 +32,7 @@ defmodule BlogWeb.PageController do
             <Heroicons.icon name="arrow-long-down" type="outline" class="h-4 w-4" />
           <% end %>
         </.link>
-      </div>
+      </div> --%>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <%= for n <- @note do %>
           <.link href={~p"/item/#{n.id}"}>
@@ -71,7 +71,8 @@ defmodule BlogWeb.PageController do
               |> Enum.map(fn [id, title, content, imagePath, insertedAt, tags] ->
                 %{id: id, title: title, content: content, imagePath: imagePath, inserted_at: insertedAt, tags: tags}
               end) do
-      {:ok, assign(socket, remote_ip: remote_ip, sort_order: :desc, note: notes, scope: scope)}
+      # {:ok, assign(socket, remote_ip: remote_ip, sort_order: :desc, note: notes, scope: scope, conn: component.conn)}
+      {:ok, assign(socket, remote_ip: remote_ip, note: notes, scope: scope, conn: component.conn)}
     else
       {:error, reason} ->
         IO.inspect(reason, label: "ERROR")
@@ -82,22 +83,31 @@ defmodule BlogWeb.PageController do
     end
   end
 
-  def handle_params(params, _uri, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  @spec handle_params(nil | maybe_improper_list() | map(), any(), any()) :: {:noreply, any()}
+  def handle_params(params, uri, socket) do
+    socket =
+      if query = params["query"] do
+        conn = socket.assigns.conn
+        case Duckdbex.query(conn, "SELECT * FROM note WHERE Title LIKE '%#{query}%' OR Content LIKE '%#{query}%'") do
+          {:ok, result} ->
+            notes = Duckdbex.fetch_all(result)
+                    |> Enum.map(fn [id, title, content, imagePath, insertedAt, tags] ->
+                      %{id: id, title: title, content: content, imagePath: imagePath, inserted_at: insertedAt, tags: tags}
+                    end)
+            assign(socket, note: notes, query: query)
+          {:error, err} ->
+            IO.inspect(err, label: "Query Error")
+            socket
+        end
+      else
+        socket
+      end
+
+    {:noreply, socket}
   end
 
-  # sorting_event
   defp apply_action(socket, :list, _params) do
-    db = Duckdbex.open() |> elem(1)
-    _conn = Duckdbex.connection(db) |> elem(1)
-
-    notes = socket.assigns.note
-    notes = if socket.assigns.sort_order == :asc do
-      Enum.sort_by(notes, & &1.inserted_at)
-    else
-      Enum.sort_by(notes, & &1.inserted_at, &>=/2)
-    end
-    assign(socket, note: notes, sort_order: if socket.assigns.sort_order == :desc do :asc else :desc end )
+    assign(socket, note: socket.assigns.note )
   end
 
   defp apply_action(socket, :home, _params) do
@@ -105,10 +115,22 @@ defmodule BlogWeb.PageController do
   end
 
   def handle_event("update_input", %{"value" => value}, socket) do
-
-    # ActiveLog.log("update_input", "검색 이벤트", socket.assigns.scope, value)
-    # notes = NoteData.get_content_by_title([title: value])
-    {:noreply, assign(socket, value)}
+    {:noreply, push_patch(socket, to: ~p"/list?#{[query: value]}")}
   end
 
+  # def handle_event("update_input", %{"value" => value}, socket) do
+  #   conn = socket.assigns.conn
+  #   case Duckdbex.query(conn, "select * from note where Title like '%#{value}%' or Content like '%#{value}%'") do
+  #     {:ok, result} ->
+  #       notes = Duckdbex.fetch_all(result)
+  #         |> Enum.map(fn [id, title, content, imagePath, insertedAt, tags] ->
+  #           %{id: id, title: title, content: content, imagePath: imagePath, inserted_at: insertedAt, tags: tags}
+  #         end)
+  #         # {:noreply, push_patch(socket, to: Routes.page_path(socket, :home, query: value))}
+  #       {:noreply, assign(socket, note: notes)}
+  #     {:error, err} ->
+  #       IO.inspect(err, label: "Query Error")
+  #       {:noreply, socket}
+  #   end
+  # end
 end
