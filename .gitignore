@@ -46,3 +46,5 @@ node_modules/picomatch
 
 # .xml 파일 무시
 *.xml
+
+/config/dev.exs
