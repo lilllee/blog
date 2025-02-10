@@ -14,27 +14,22 @@ defmodule BlogWeb.NoteLive do
   end
 
   def mount(%{"id" => id}, _session, socket) do
-
-    duck_compoent = DuckComponents.init_duck_db(%{table_nm: "note"}) |> elem(1)
-    # db = Duckdbex.open() |> elem(1)
-    # conn = Duckdbex.connection(db) |> elem(1)
-    post = case duck_compoent.table do
-      {:ok, _result} ->
-        case Duckdbex.query(duck_compoent.conn, Enum.join(["SELECT id, title, content, imagePath from note where id=", id])) do
-           {:ok, query_result} ->
-            query_result
-            |> Duckdbex.fetch_all()
-            |> Enum.map(fn [id, title, content, imagePath] ->
-              %{id: id, title: title, content: content, imagePath: imagePath}
-            end)
-            {:error, err} ->
-              IO.inspect(err, label: "SELECT ERROR")
-              []
-        end
-        {:error, err} -> IO.inspect(err, label: "CREATE TABLE ERROR")
-    end |> List.first()
-
-    {:ok, assign(socket, title: post.title, imagePath: post.imagePath, content: markdown([content: post.content]))}
+    with {:ok, componet} <- DuckComponents.init_duck_db(%{table_nm: "note"}),
+         {:ok, result} <- Duckdbex.query(componet.conn, Enum.join(["SELECT id, title, content, imagePath from note where id=", id])),
+         post <- Duckdbex.fetch_all(result)
+              |> Enum.map(fn [id, title, content, imagePath] ->
+                %{id: id, title: title, content: content, imagePath: imagePath}
+              end) do
+         first_list = post |> List.first()
+         {:ok, assign(socket, title: first_list.title, imagePath: first_list.imagePath, content: markdown([content: first_list.content]))}
+    else
+      {:error, reason} ->
+        IO.inspect(reason, label: "ERROR")
+        {:error, reason}
+      other ->
+        IO.inspect(other, label: "UNEXPECTED ERROR")
+        {:error, other}
+    end
   end
 
   @spec markdown(keyword()) ::

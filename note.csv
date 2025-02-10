@@ -176,8 +176,6 @@ Here's a ""line block"":
 
 and images can be specified like so:
 
-![example image](example-image.jpg ""An exemplary image"")
-
 Inline math equations go in like so: $\omega = d\phi / dt$. Display
 math should get its own line and be put in in double-dollarsigns:
 
@@ -293,3 +291,4 @@ PostgreSQL을 사용하다 보면 성능 최적화를 위해 인덱스 튜닝이
 
 ```sql
 CREATE INDEX idx_users_email ON users (email);"|dark.jpg|2025.12.12|test1,test3,test4
+5|테스트|테스트컨텐츠|dark.jpg|2025.02.10|test1,2,3,4
