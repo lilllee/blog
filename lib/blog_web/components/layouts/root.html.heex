@@ -1,32 +1,76 @@
 <!DOCTYPE html>
-<html lang="en" class="[scrollbar-gutter:stable]">
+<html lang="en" class="[scrollbar-gutter:stable] min-h-screen">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="csrf-token" content={Plug.CSRFProtection.get_csrf_token()} /> 
+    <meta name="csrf-token" content={Plug.CSRFProtection.get_csrf_token()} />
     <.live_title suffix=" · Phoenix Framework">
       <%= assigns[:page_title] || "Blog" %>
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.7.0/github-markdown-light.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.7.0/github-markdown-light.css">
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}></script>
-  <style>
-    .markdown-body {
-      box-sizing: border-box;
-      min-width: 200px;
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 45px;
-    }
-
-    @media (max-width: 767px) {
+    <style>
       .markdown-body {
-        padding: 15px;
+        box-sizing: border-box;
+        min-width: 200px;
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 45px;
       }
-    }
-  </style>
+
+      @media (max-width: 767px) {
+        .markdown-body {
+          padding: 15px;
+        }
+      }
+
+      /* 다크모드에서 마크다운 영역 전체 오버라이드 */
+      .dark .markdown-body {
+        background-color: #1e293b; /* 어두운 배경 */
+        color: #cbd5e1;           /* 연한 텍스트 색상 */
+      }
+
+      /* 다크모드에서 제목, 링크 등 추가 오버라이드 */
+      .dark .markdown-body h1,
+      .dark .markdown-body h2,
+      .dark .markdown-body h3,
+      .dark .markdown-body h4,
+      .dark .markdown-body h5,
+      .dark .markdown-body h6 {
+        color: #ffffff;
+      }
+      .dark .markdown-body a {
+        color: #93c5fd;
+      }
+
+      /* 다크모드에서 인라인 코드 (예: <code>) */
+      .dark .markdown-body code {
+        background-color: #0f172a;
+        color: #f8f8f2;
+        padding: 0.2em 0.4em;
+        border-radius: 0.25rem;
+      }
+
+      /* 다크모드에서 코드 블록 (예: <pre><code>) */
+      .dark .markdown-body pre {
+        background-color: #0f172a;  /* 어두운 배경 */
+        color: #f8f8f2;             /* 밝은 텍스트 */
+        padding: 1em;
+        border-radius: 0.5rem;
+        overflow: auto;
+      }
+
+      /* 다크모드에서 코드 블록 내부의 <code> 태그 (선택적) */
+      .dark .markdown-body pre code {
+        background-color: transparent;
+        padding: 0;
+        border-radius: 0;
+      }
+
+    </style>
   </head>
-  <body class="bg-white">
+  <body class="min-h-screen bg-white dark:bg-gray-900">
     <%= @inner_content %>
   </body>
 </html>

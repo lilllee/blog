@@ -1,5 +1,5 @@
 <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-<div class="flex">
+<div class="flex flex-col min-h-screen">
   <!-- Main content -->
   <div class="flex-1 w-full bg-white dark:bg-gray-900">
     <header class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-4 flex justify-between items-center shadow-md fixed top-0 left-0 w-full z-50">
@@ -12,10 +12,14 @@
             <!-- 다크모드 토글 버튼 시작 -->
             <button id="theme-toggle" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-gray-500 dark:text-gray-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-600">
               <span class="sr-only">Toggle Dark Mode</span>
-              <!-- 기본적으로 달 모양 아이콘 표시 (Heroicons) -->
-              <svg id="theme-toggle-dark-icon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293a8 8 0 01-11.078-11.41 1 1 0 011.417 1.417 6 6 0 008.248 8.248 1 1 0 011.413-1.413l-.001.001z" /></svg>
-              <!-- 해 모양 아이콘 표시 -->
-              <svg id="theme-toggle-light-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 3a1 1 0 010 2 5 5 0 100 10 1 1 0 010 2 7 7 0 010-14zm-8 7a8 8 0 1111.314 7.071 1 1 0 01-1.414-1.414A6 6 0 104 10a1 1 0 010-2zm14 0a1 1 0 010 2 8 8 0 01-8 8 .999.999 0 01-.99-.858 1 1 0 011.98-.142A6 6 0 0016 10a1 1 0 010-2z"/></svg>
+              <!-- 달 모양 아이콘 (Heroicons) -->
+              <svg id="theme-toggle-dark-icon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M17.293 13.293a8 8 0 01-11.078-11.41 1 1 0 011.417 1.417 6 6 0 008.248 8.248 1 1 0 011.413-1.413l-.001.001z" />
+              </svg>
+              <!-- 해 모양 아이콘 -->
+              <svg id="theme-toggle-light-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 3a1 1 0 010 2 5 5 0 100 10 1 1 0 010 2 7 7 0 010-14zm-8 7a8 8 0 1111.314 7.071 1 1 0 01-1.414-1.414A6 6 0 104 10a1 1 0 010-2zm14 0a1 1 0 010 2 8 8 0 01-8 8 .999.999 0 01-.99-.858 1 1 0 011.98-.142A6 6 0 0016 10a1 1 0 010-2z"/>
+              </svg>
             </button>
             <!-- 다크모드 토글 버튼 끝 -->
 
@@ -47,15 +51,30 @@
       </div>
     </main>
   </div>
+
+  <!-- Footer -->
+  <footer class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 py-6">
+    <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row justify-between items-center">
+        <p class="text-sm">&copy; <%= Date.utc_today().year %> junho lee. All rights reserved.</p>
+        <div class="mt-4 md:mt-0">
+          <a href="/privacy" class="text-sm hover:underline mr-4">Privacy Policy</a>
+          <a href="/terms" class="text-sm hover:underline">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
 </div>
+
 <script>
   function googleTranslateElementInit() {
     new google.translate.TranslateElement({
-        pageLanguage: 'ko', // 원본 페이지의 언어 (한국어)
-        includedLanguages: 'en,ko,ja,ru,zh-CN,vi', // 선택 가능한 언어 목록
-        autoDisplay: false // 위젯의 기본 UI를 자동 표시하지 않음
+      pageLanguage: 'ko', // 원본 페이지의 언어 (한국어)
+      includedLanguages: 'en,ko,ja,ru,zh-CN,vi', // 선택 가능한 언어 목록
+      autoDisplay: false // 위젯의 기본 UI를 자동 표시하지 않음
     }, 'google_translate_element');
   }
+  
   document.addEventListener('DOMContentLoaded', () => {
     const themeToggleBtn = document.getElementById('theme-toggle');
     const darkIcon = document.getElementById('theme-toggle-dark-icon');

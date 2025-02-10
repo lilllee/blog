@@ -10,15 +10,20 @@ defmodule BlogWeb.PageController do
       <.header>
         <div class="flex items-center space-x-6">
           <div class="relative">
-            <input type="text" placeholder="Search"
+            <input
+              type="text"
+              placeholder="Search"
               phx-debounce="300"
               phx-keyup="update_input"
               phx-change="update_input"
-              id="query" name="query" class="bg-gray-100 text-gray-800 py-1 px-4 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64 shadow-sm">
+              id="query"
+              name="query"
+              class="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 py-1 px-4 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64 shadow-sm"
+            >
             <span class="absolute inset-y-0 right-0 flex items-center pr-3">
-              <kbd class="bg-gray-200 text-gray-500 rounded px-1">Ctrl</kbd>
-              <span class="mx-1 text-gray-500">+</span>
-              <kbd class="bg-gray-200 text-gray-500 rounded px-1">K</kbd>
+              <kbd class="bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-300 rounded px-1">Ctrl</kbd>
+              <span class="mx-1 text-gray-500 dark:text-gray-300">+</span>
+              <kbd class="bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-300 rounded px-1">K</kbd>
             </span>
           </div>
         </div>
@@ -45,7 +50,7 @@ defmodule BlogWeb.PageController do
                   <%= n.title %>
                 </h2>
                 <p class="text-base text-gray-700 mb-4">
-                  <%= n.content |> String.slice(0, 100) %>...
+                  <%= n.content |> String.slice(0, 50) %>...
                 </p>
                 <div class="flex items-center">
                   <div>
