@@ -1,0 +1,16 @@
+[
+  {
+    "Id": 1,
+    "Title": "duckDB테스트",
+    "Content": "내용1",
+    "ImagePath": "ssl.jpg",
+    "InsertedAt": "2025.02.06"
+  },
+  {
+    "Id": 2,
+    "Title": "duckDB테스트2",
+    "Content": "내용2",
+    "ImagePath": "ecto.jpg",
+    "InsertedAt": "2025.02.05"
+  }
+]
