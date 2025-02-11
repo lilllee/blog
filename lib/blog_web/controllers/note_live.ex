@@ -8,6 +8,8 @@ defmodule BlogWeb.NoteLive do
     </.header>
     <article class="markdown-body">
       <h1><%= @title %></h1>
+      <img phx-track-static src={~p"/images/#{@imagePath}"} alt="Note Image"
+      class="w-full h-60 object-cover hover:rotate-1 hover:scale- transition-transform duration-300" />
       <%= @content %>
     </article>
     """
