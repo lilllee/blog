@@ -47,5 +47,5 @@ node_modules/picomatch
 # .xml 파일 무시
 *.xml
 
-# 
-config/dev.exs
+# config 디렉토리에 있는 dev.exs 파일 제외
+!config/dev.exs
