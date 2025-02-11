@@ -66,7 +66,9 @@ defmodule Blog.MixProject do
       {:html_sanitize_ex, "~> 1.4.2"}, # https://github.com/leandrocp/mdex docs
       {:remote_ip, "~> 1.2.0"}, #https://hexdocs.pm/remote_ip/RemoteIp.html#module-usage
       # {:phoenix_analytics, "~> 0.2"},
-      {:duckdbex, "~> 0.3.0"}
+      {:duckdbex, "~> 0.3.0"},
+      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
     ]
   end
 

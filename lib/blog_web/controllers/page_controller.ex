@@ -1,6 +1,6 @@
 defmodule BlogWeb.PageController do
   use BlogWeb, :live_view
-  alias BlogWeb.{Scope, DuckComponents}
+  alias BlogWeb.{Scope, DuckComponents, Endpoint}
 
   # :controller 는 HTTP 요청을 처리하고 응답을 반환
   # :live_view 는 사용자 인터페이스를 렌더링하고 사용자와 상호작용
@@ -69,27 +69,26 @@ defmodule BlogWeb.PageController do
 
   @spec mount(any(), any(), any()) :: none()
   def mount(_params, %{"remote_ip" => remote_ip}, socket) do
-    scope = %Scope{current_ip: remote_ip}
+    scope = %Scope{current_ip: remote_ip} |>IO.inspect()
     with {:ok, component} <- DuckComponents.init_duck_db(%{table_nm: "note"}),
          {:ok, result} <- Duckdbex.query(component.conn, "SELECT * FROM note"),
          notes <- Duckdbex.fetch_all(result)
-              |> Enum.map(fn [id, title, content, imagePath, insertedAt, tags] ->
-                %{id: id, title: title, content: content, imagePath: imagePath, inserted_at: insertedAt, tags: tags}
+              |> Enum.map(fn [id, title, content, imagePath, insertedAt, tags, categories] ->
+                %{id: id, title: title, content: content, imagePath: imagePath, inserted_at: insertedAt, tags: tags, categories: categories}
               end) do
-      # {:ok, assign(socket, remote_ip: remote_ip, sort_order: :desc, note: notes, scope: scope, conn: component.conn)}
-      {:ok, assign(socket, remote_ip: remote_ip, note: notes, scope: scope, conn: component.conn)}
+      {:ok, assign(socket, remote_ip: remote_ip, note: notes, scope: scope, conn: component.conn, message: "", messages: ["123", "123123", "123123123"])}
     else
       {:error, reason} ->
         IO.inspect(reason, label: "ERROR")
-        {:error, reason}
+        {:ok, assign(socket, error: "Initialization failed: #{reason}")}
       other ->
         IO.inspect(other, label: "ERROR")
-        {:error, other}
+        {:ok, assign(socket, error: "Initialization failed: #{other}")}
     end
   end
 
   @spec handle_params(nil | maybe_improper_list() | map(), any(), any()) :: {:noreply, any()}
-  def handle_params(params, uri, socket) do
+  def handle_params(params, _uri, socket) do
     socket =
       if query = params["query"] do
         conn = socket.assigns.conn
@@ -119,10 +118,11 @@ defmodule BlogWeb.PageController do
     socket
   end
 
+  @spec handle_event(<<_::96>>, map(), Phoenix.LiveView.Socket.t()) ::
+          {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("update_input", %{"value" => value}, socket) do
     {:noreply, push_patch(socket, to: ~p"/list?#{[query: value]}")}
   end
-
   # def handle_event("update_input", %{"value" => value}, socket) do
   #   conn = socket.assigns.conn
   #   case Duckdbex.query(conn, "select * from note where Title like '%#{value}%' or Content like '%#{value}%'") do

@@ -2,6 +2,7 @@ defmodule BlogWeb.NoteLive do
   use BlogWeb, :live_view
   alias BlogWeb.{DuckComponents}
 
+  @spec render(any()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
     <.header>
@@ -15,6 +16,7 @@ defmodule BlogWeb.NoteLive do
     """
   end
 
+  @spec mount(any(), any(), any()) :: none()
   def mount(%{"id" => id}, _session, socket) do
     with {:ok, componet} <- DuckComponents.init_duck_db(%{table_nm: "note"}),
          {:ok, result} <- Duckdbex.query(componet.conn, Enum.join(["SELECT id, title, content, imagePath from note where id=", id])),
