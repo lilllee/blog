@@ -4,12 +4,58 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={Plug.CSRFProtection.get_csrf_token()} />
-    <.live_title suffix=" · Phoenix Framework">
-      <%= assigns[:page_title] || "Blog" %>
+    <% meta = assigns[:meta] || %{}
+    base_url = BlogWeb.Endpoint.url()
+    title = meta[:title] || assigns[:page_title] || "Blog"
+    description = meta[:description] || "Personal developer blog"
+
+    canonical =
+      cond do
+        is_binary(meta[:url]) and String.starts_with?(meta[:url], "http") -> meta[:url]
+        is_binary(meta[:url]) -> base_url <> meta[:url]
+        true -> base_url
+      end
+
+    image =
+      cond do
+        is_binary(meta[:image]) and String.starts_with?(meta[:image], "http") -> meta[:image]
+        is_binary(meta[:image]) -> base_url <> meta[:image]
+        true -> base_url <> "/images/dark.jpg"
+      end %>
+    <.live_title suffix=" · Blog">
+      <%= title %>
     </.live_title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content={meta[:type] || "website"} />
+    <meta property="og:image" content={image} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.7.0/github-markdown-light.css">
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
+      media="(prefers-color-scheme: light)"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css"
+      media="(prefers-color-scheme: dark)"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.7.0/github-markdown-light.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js">
+    </script>
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
+    </script>
     <style>
       .markdown-body {
         box-sizing: border-box;
@@ -67,7 +113,6 @@
         padding: 0;
         border-radius: 0;
       }
-
     </style>
   </head>
   <body class="min-h-screen bg-white dark:bg-gray-900">

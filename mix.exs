@@ -40,7 +40,7 @@ defmodule Blog.MixProject do
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       # TODO bump on release to {:phoenix_live_view, "~> 1.0.0"},
       {:phoenix_live_view, "~> 1.0.0-rc.1", override: true},
-      {:floki, ">= 0.30.0", only: :test},
+      {:floki, ">= 0.30.0"},
       {:phoenix_live_dashboard, "~> 0.8.3"},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
@@ -62,9 +62,12 @@ defmodule Blog.MixProject do
       {:bandit, "~> 1.5"},
       {:earmark_parser, "~> 1.4"},
       {:earmark, "~> 1.4.46"},
-      {:mdex, "~> 0.2"}, # https://github.com/leandrocp/mdex docs
-      {:html_sanitize_ex, "~> 1.4.2"}, # https://github.com/leandrocp/mdex docs
-      {:remote_ip, "~> 1.2.0"}, #https://hexdocs.pm/remote_ip/RemoteIp.html#module-usage
+      # https://github.com/leandrocp/mdex docs
+      {:mdex, "~> 0.2"},
+      # https://github.com/leandrocp/mdex docs
+      {:html_sanitize_ex, "~> 1.4.2"},
+      # https://hexdocs.pm/remote_ip/RemoteIp.html#module-usage
+      {:remote_ip, "~> 1.2.0"},
       # {:phoenix_analytics, "~> 0.2"},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}

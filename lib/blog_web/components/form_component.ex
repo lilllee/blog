@@ -5,7 +5,7 @@ defmodule BlogWeb.FormComponent do
   def render(assigns) do
     ~H"""
     <div class="h-full flex flex-col justify-center items-center dark:text-white descendant:dark:text-white">
-      <article class={["prose dark:prose-invert prose-a:text-blue-600 descendant:dark:text-white",]}>
+      <article class={["prose dark:prose-invert prose-a:text-blue-600 descendant:dark:text-white"]}>
         <%= Earmark.as_html!(@input, escape: false, inner_html: true, compact_output: true)
         |> HtmlSanitizeEx.basic_html()
         |> Phoenix.HTML.raw() %>
@@ -18,6 +18,7 @@ defmodule BlogWeb.FormComponent do
     socket =
       socket
       |> allow_upload(:markdown, accept: ~w(.md), max_entries: 1, max_file_size: 5 * 1024 * 1024)
+
     {:ok, assign(socket, markdown_html: "")}
   end
 

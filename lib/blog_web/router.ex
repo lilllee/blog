@@ -20,6 +20,10 @@ defmodule BlogWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :admin_auth do
+    plug BlogWeb.AdminAuth
+  end
+
   # get, post, 등 보다 더 많은 HTTP 메소드를 지원하는 live macro를 사용한다.
   # 사용하면 페이지의 특정 상태를 기반으로 UI가 즉각적으로 업데이트되기 때문에
   # get이나 post 방식의 요청보다 더 동적인 상호작용 가능
@@ -30,10 +34,20 @@ defmodule BlogWeb.Router do
     live "/", PageController, :home
     live "/list", PageController, :list
     live "/item/:id", NoteLive, :show
+    get "/rss.xml", FeedController, :rss
+    get "/sitemap.xml", FeedController, :sitemap
     # live "/add", PageController, :add
     # live "/list/:sort", PageController, :list
     # live "/logs", LogLive, :logs
     # live "/chats", ChatLive, :chat
+  end
+
+  scope "/admin", BlogWeb do
+    pipe_through [:browser, :admin_auth]
+
+    live "/posts", Admin.PostIndexLive, :index
+    live "/posts/new", Admin.PostEditLive, :new
+    live "/posts/:id/edit", Admin.PostEditLive, :edit
   end
 
   # Other scopes may use custom stacks.

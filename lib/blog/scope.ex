@@ -25,8 +25,8 @@ defmodule BlogWeb.Scope do
   @doc """
   아직 없음.
   """
-#  def for_user(%BlogWeb.Accounts.User{} = user, %{remote_ip: ip}) do
-#    ip_string = :inet.ntoa(ip) |> to_string()
-#    %__MODULE__{current_user: user, current_user_id: user.id, current_ip: ip_string}
-#  end
+  #  def for_user(%BlogWeb.Accounts.User{} = user, %{remote_ip: ip}) do
+  #    ip_string = :inet.ntoa(ip) |> to_string()
+  #    %__MODULE__{current_user: user, current_user_id: user.id, current_ip: ip_string}
+  #  end
 end

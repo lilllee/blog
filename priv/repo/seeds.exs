@@ -71,7 +71,9 @@ if File.exists?(csv_path) do
                 String.to_integer(year),
                 String.to_integer(month),
                 String.to_integer(day),
-                0, 0, 0
+                0,
+                0,
+                0
               )
 
             _ ->

@@ -22,6 +22,60 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
+const focusSearch = () => {
+  const search = document.getElementById("search")
+  if (search) {
+    search.focus()
+    search.select()
+  }
+}
+
+const enhanceCodeBlocks = () => {
+  if (window.hljs) {
+    document.querySelectorAll("pre code").forEach((block) => window.hljs.highlightElement(block))
+  }
+
+  document.querySelectorAll("pre code").forEach((block) => {
+    const pre = block.parentElement
+    if (!pre || pre.dataset.enhanced === "true") return
+
+    pre.dataset.enhanced = "true"
+    pre.classList.add("group", "relative")
+
+    const button = document.createElement("button")
+    button.type = "button"
+    button.textContent = "Copy"
+    button.className =
+      "absolute right-2 top-2 hidden rounded-md bg-slate-900 px-2 py-1 text-xs font-semibold text-white shadow group-hover:block dark:bg-slate-700"
+
+    button.addEventListener("click", async (event) => {
+      event.preventDefault()
+      const text = block.innerText
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(text)
+        } else {
+          const textarea = document.createElement("textarea")
+          textarea.value = text
+          textarea.style.position = "fixed"
+          textarea.style.opacity = "0"
+          document.body.appendChild(textarea)
+          textarea.select()
+          document.execCommand("copy")
+          document.body.removeChild(textarea)
+        }
+        button.textContent = "Copied"
+        setTimeout(() => (button.textContent = "Copy"), 1200)
+      } catch (_error) {
+        button.textContent = "Error"
+        setTimeout(() => (button.textContent = "Copy"), 1200)
+      }
+    })
+
+    pre.appendChild(button)
+  })
+}
+
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
@@ -29,17 +83,22 @@ let liveSocket = new LiveSocket("/live", Socket, {
 })
 
 document.addEventListener('keydown', function (event) {
-  if (event.ctrlKey && event.key === 'k') {
-    event.preventDefault();
-    document.getElementById('search').focus();
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+    event.preventDefault()
+    focusSearch()
   }
 });
 
+document.addEventListener("DOMContentLoaded", enhanceCodeBlocks)
+
+window.addEventListener("phx:page-loading-stop", () => {
+  topbar.hide()
+  enhanceCodeBlocks()
+})
 
 // Show progress bar on live navigation and form submits
 topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
 window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
-window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
 
 // connect if there are any LiveViews on the page
 liveSocket.connect()
