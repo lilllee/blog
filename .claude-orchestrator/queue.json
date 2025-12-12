@@ -1,0 +1,106 @@
+{
+  "version": "1.0",
+  "tasks": [
+    {
+      "id": "task-001",
+      "type": "feature_implementation",
+      "priority": "high",
+      "title": "Migrate from DuckDB to SQLite with Ecto",
+      "description": "Replace DuckDB implementation with SQLite using Ecto. Update PageController and NoteLive to use Ecto queries instead of Duckdbex. Enable commented-out Ecto dependencies in mix.exs (phoenix_ecto, ecto_sql). Update database configuration to use SQLite adapter. Create proper Ecto schema for Note model (currently commented out). Migrate data from note.csv to SQLite database.",
+      "acceptanceCriteria": [
+        "Ecto dependencies are enabled in mix.exs",
+        "Database config updated to use SQLite adapter",
+        "Blog.Note schema is properly defined with Ecto",
+        "PageController uses Ecto queries instead of Duckdbex",
+        "NoteLive uses Ecto queries instead of Duckdbex",
+        "DuckComponents module is removed or deprecated",
+        "Note data migrated from CSV to SQLite",
+        "Search functionality works with Ecto queries"
+      ],
+      "status": "in_progress",
+      "createdAt": "2025-12-12T09:45:00.000Z",
+      "updatedAt": "2025-12-12T01:20:45.570Z"
+    },
+    {
+      "id": "task-002",
+      "type": "feature_implementation",
+      "priority": "high",
+      "title": "Implement blog post creation and management interface",
+      "description": "Create admin interface for creating, editing, and deleting blog posts. Add authentication to protect admin routes. Implement form for creating new posts with title, content (markdown), tags, categories, and image upload. Add validation and error handling.",
+      "acceptanceCriteria": [
+        "Admin LiveView created for post management",
+        "Create post form with markdown editor",
+        "Edit existing post functionality",
+        "Delete post with confirmation",
+        "Image upload functionality",
+        "Tag and category management",
+        "Basic authentication to protect admin routes",
+        "Form validation and error messages display"
+      ],
+      "status": "in_progress",
+      "createdAt": "2025-12-12T09:45:00.000Z",
+      "updatedAt": "2025-12-12T01:42:21.636Z"
+    },
+    {
+      "id": "task-003",
+      "type": "feature_implementation",
+      "priority": "medium",
+      "title": "Enhance blog post features with categories and tags filtering",
+      "description": "Implement filtering by tags and categories on the blog listing page. Add category and tag pages to show all posts with specific tag/category. Update the UI to display tags and categories as clickable filters. Optimize database queries with proper indexes.",
+      "acceptanceCriteria": [
+        "Tags are clickable and filter posts",
+        "Categories are clickable and filter posts",
+        "Dedicated tag and category pages created",
+        "URL structure supports filtering (e.g., /tag/elixir, /category/tutorial)",
+        "Database indexes added for performance",
+        "Filter state persists in URL params",
+        "Combined search and filter functionality works"
+      ],
+      "status": "in_progress",
+      "createdAt": "2025-12-12T09:45:00.000Z",
+      "updatedAt": "2025-12-12T01:47:22.292Z"
+    },
+    {
+      "id": "task-004",
+      "type": "feature_implementation",
+      "priority": "medium",
+      "title": "Add RSS feed and SEO optimization",
+      "description": "Generate RSS/Atom feed for blog posts. Add proper meta tags for SEO (title, description, Open Graph, Twitter Cards). Implement sitemap generation. Add structured data markup for blog posts. Ensure proper heading hierarchy and semantic HTML.",
+      "acceptanceCriteria": [
+        "RSS feed available at /feed.xml or /rss",
+        "Meta tags (og:title, og:description, og:image) on all pages",
+        "Twitter Card meta tags implemented",
+        "Sitemap.xml generated and accessible",
+        "JSON-LD structured data for blog posts",
+        "Proper HTML semantic structure (h1, article, time tags)",
+        "Canonical URLs set correctly"
+      ],
+      "status": "in_progress",
+      "createdAt": "2025-12-12T09:45:00.000Z",
+      "updatedAt": "2025-12-12T01:07:14.389Z"
+    },
+    {
+      "id": "task-005",
+      "type": "feature_implementation",
+      "priority": "low",
+      "title": "Implement code syntax highlighting and markdown enhancements",
+      "description": "Add syntax highlighting for code blocks in markdown posts using a library like Makeup or highlight.js. Enhance markdown rendering with table of contents generation, anchor links for headings, and copy buttons for code blocks. Improve reading experience with estimated reading time.",
+      "acceptanceCriteria": [
+        "Code blocks have syntax highlighting",
+        "Language detection or explicit language specification works",
+        "Table of contents auto-generated from headings",
+        "Heading anchor links work for sharing",
+        "Copy button on code blocks",
+        "Estimated reading time displayed on posts",
+        "Responsive code block styling",
+        "Dark mode support for code highlighting"
+      ],
+      "status": "in_progress",
+      "createdAt": "2025-12-12T09:45:00.000Z",
+      "updatedAt": "2025-12-12T01:15:27.465Z"
+    }
+  ],
+  "completed": [],
+  "current": "task-003",
+  "lastUpdated": "2025-12-12T01:47:22.292Z"
+}

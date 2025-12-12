@@ -1,0 +1,14 @@
+{
+  "project": {
+    "name": "blog",
+    "path": "C:\\Users\\kopqw\\Documents\\blog"
+  },
+  "scope": "static personal blog site using Elixir Phoenix and does not using duckdb, using sqlite",
+  "goals": [
+    "dev blog"
+  ],
+  "platform": "custom",
+  "maxTasks": 10,
+  "continuous": false,
+  "initialized": "2025-12-12T00:43:40.245Z"
+}
