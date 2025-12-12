@@ -1,6 +1,7 @@
 defmodule BlogWeb.PageController do
   use BlogWeb, :live_view
-  alias BlogWeb.{Scope, DuckComponents, Endpoint}
+  alias BlogWeb.Scope
+  alias Blog.NoteData
 
   # :controller 는 HTTP 요청을 처리하고 응답을 반환
   # :live_view 는 사용자 인터페이스를 렌더링하고 사용자와 상호작용
@@ -42,7 +43,7 @@ defmodule BlogWeb.PageController do
         <%= for n <- @note do %>
           <.link href={~p"/item/#{n.id}"}>
             <div class="note-item border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition transform group">
-              <img phx-track-static src={~p"/images/#{n.imagePath}"} alt="Note Image"
+              <img phx-track-static src={~p"/images/#{n.image_path}"} alt="Note Image"
                   class="w-full h-60 object-cover hover:rotate-1 hover:scale- transition-transform duration-300" />
               <div class="p-4">
                 <span class="block text-sm font-semibold text-blue-600 mb-1"><%= n.tags %></span>
@@ -69,40 +70,24 @@ defmodule BlogWeb.PageController do
 
   @spec mount(any(), any(), any()) :: none()
   def mount(_params, %{"remote_ip" => remote_ip}, socket) do
-    scope = %Scope{current_ip: remote_ip} |>IO.inspect()
-    with {:ok, component} <- DuckComponents.init_duck_db(%{table_nm: "note"}),
-         {:ok, result} <- Duckdbex.query(component.conn, "SELECT * FROM note"),
-         notes <- Duckdbex.fetch_all(result)
-              |> Enum.map(fn [id, title, content, imagePath, insertedAt, tags, categories] ->
-                %{id: id, title: title, content: content, imagePath: imagePath, inserted_at: insertedAt, tags: tags, categories: categories}
-              end) do
-      {:ok, assign(socket, remote_ip: remote_ip, note: notes, scope: scope, conn: component.conn, message: "", messages: ["123", "123123", "123123123"])}
-    else
-      {:error, reason} ->
-        IO.inspect(reason, label: "ERROR")
-        {:ok, assign(socket, error: "Initialization failed: #{reason}")}
-      other ->
-        IO.inspect(other, label: "ERROR")
-        {:ok, assign(socket, error: "Initialization failed: #{other}")}
-    end
+    scope = %Scope{current_ip: remote_ip} |> IO.inspect()
+    notes = NoteData.get_all_notes()
+
+    {:ok, assign(socket,
+      remote_ip: remote_ip,
+      note: notes,
+      scope: scope,
+      message: "",
+      messages: ["123", "123123", "123123123"]
+    )}
   end
 
   @spec handle_params(nil | maybe_improper_list() | map(), any(), any()) :: {:noreply, any()}
   def handle_params(params, _uri, socket) do
     socket =
       if query = params["query"] do
-        conn = socket.assigns.conn
-        case Duckdbex.query(conn, "SELECT * FROM note WHERE Title LIKE '%#{query}%' OR Content LIKE '%#{query}%'") do
-          {:ok, result} ->
-            notes = Duckdbex.fetch_all(result)
-                    |> Enum.map(fn [id, title, content, imagePath, insertedAt, tags] ->
-                      %{id: id, title: title, content: content, imagePath: imagePath, inserted_at: insertedAt, tags: tags}
-                    end)
-            assign(socket, note: notes, query: query)
-          {:error, err} ->
-            IO.inspect(err, label: "Query Error")
-            socket
-        end
+        notes = NoteData.search_notes(query)
+        assign(socket, note: notes, query: query)
       else
         socket
       end
@@ -123,19 +108,4 @@ defmodule BlogWeb.PageController do
   def handle_event("update_input", %{"value" => value}, socket) do
     {:noreply, push_patch(socket, to: ~p"/list?#{[query: value]}")}
   end
-  # def handle_event("update_input", %{"value" => value}, socket) do
-  #   conn = socket.assigns.conn
-  #   case Duckdbex.query(conn, "select * from note where Title like '%#{value}%' or Content like '%#{value}%'") do
-  #     {:ok, result} ->
-  #       notes = Duckdbex.fetch_all(result)
-  #         |> Enum.map(fn [id, title, content, imagePath, insertedAt, tags] ->
-  #           %{id: id, title: title, content: content, imagePath: imagePath, inserted_at: insertedAt, tags: tags}
-  #         end)
-  #         # {:noreply, push_patch(socket, to: Routes.page_path(socket, :home, query: value))}
-  #       {:noreply, assign(socket, note: notes)}
-  #     {:error, err} ->
-  #       IO.inspect(err, label: "Query Error")
-  #       {:noreply, socket}
-  #   end
-  # end
 end

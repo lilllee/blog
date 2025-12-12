@@ -1,6 +1,6 @@
 defmodule BlogWeb.NoteLive do
   use BlogWeb, :live_view
-  alias BlogWeb.{DuckComponents}
+  alias Blog.NoteData
 
   @spec render(any()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
@@ -18,21 +18,16 @@ defmodule BlogWeb.NoteLive do
 
   @spec mount(any(), any(), any()) :: none()
   def mount(%{"id" => id}, _session, socket) do
-    with {:ok, componet} <- DuckComponents.init_duck_db(%{table_nm: "note"}),
-         {:ok, result} <- Duckdbex.query(componet.conn, Enum.join(["SELECT id, title, content, imagePath from note where id=", id])),
-         post <- Duckdbex.fetch_all(result)
-              |> Enum.map(fn [id, title, content, imagePath] ->
-                %{id: id, title: title, content: content, imagePath: imagePath}
-              end) do
-         first_list = post |> List.first()
-         {:ok, assign(socket, title: first_list.title, imagePath: first_list.imagePath, content: markdown([content: first_list.content]))}
-    else
-      {:error, reason} ->
-        IO.inspect(reason, label: "ERROR")
-        {:error, reason}
-      other ->
-        IO.inspect(other, label: "UNEXPECTED ERROR")
-        {:error, other}
+    case NoteData.get_note_by_id(id) do
+      nil ->
+        {:ok, assign(socket, error: "Note not found")}
+
+      note ->
+        {:ok, assign(socket,
+          title: note.title,
+          imagePath: note.image_path,
+          content: markdown([content: note.content])
+        )}
     end
   end
 

@@ -33,9 +33,9 @@ defmodule Blog.MixProject do
   defp deps do
     [
       {:phoenix, "~> 1.7.14"},
-      # {:phoenix_ecto, "~> 4.5"},
-      # {:ecto_sql, "~> 3.10"},
-      # {:postgrex, ">= 0.0.0"},
+      {:phoenix_ecto, "~> 4.5"},
+      {:ecto_sql, "~> 3.10"},
+      {:ecto_sqlite3, "~> 0.16"},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       # TODO bump on release to {:phoenix_live_view, "~> 1.0.0"},
@@ -66,7 +66,6 @@ defmodule Blog.MixProject do
       {:html_sanitize_ex, "~> 1.4.2"}, # https://github.com/leandrocp/mdex docs
       {:remote_ip, "~> 1.2.0"}, #https://hexdocs.pm/remote_ip/RemoteIp.html#module-usage
       # {:phoenix_analytics, "~> 0.2"},
-      {:duckdbex, "~> 0.3.0"},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
     ]

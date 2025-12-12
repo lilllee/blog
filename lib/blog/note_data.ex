@@ -1,37 +1,27 @@
-# defmodule Blog.NoteData do
+defmodule Blog.NoteData do
+  import Ecto.Query
+  alias Blog.Note
+  alias Blog.Repo
 
-#   import Ecto.Query
-#   alias Blog.NoteData
-#   alias Blog.Note
-#   alias Blog.Repo
+  def get_all_notes() do
+    from(note in Note,
+      select: note,
+      order_by: [desc: note.inserted_at]
+    )
+    |> Repo.all()
+  end
 
-#   def get_all_content() do
-#     from( note in Blog.Note,
-#       select: [ note.title, note.content, note.inserted_at, note.id ],
-#       order_by: note.inserted_at
-#     )
-#     |> Repo.all()
-#     |> Enum.map(fn [title, content, inserted_at, id] ->
-#       %{title: title, content: content, inserted_at: inserted_at, id: id}
-#     end)
-#   end
+  def get_note_by_id(id) do
+    Repo.get(Note, id)
+  end
 
-#   def get_content_by_id( opts ) do
-#     id = Keyword.get(opts, :id, 0)
-#     from( note in Blog.Note,
-#       where: note.id == ^id,
-#       select: %{ content: note.content, title: note.title }
-#     )
-#     |> Repo.one()
-#   end
+  def search_notes(query_string) do
+    search_pattern = "%#{query_string}%"
 
-#   def get_content_by_title( opts ) do
-#     title = Keyword.get(opts, :title, "")
-#     {:ok, result} = Repo.query("Select title, content, inserted_at, id from note where title like '%#{title}%'")
-
-#     result.rows
-#     |> Enum.map(fn [title, content, inserted_at, id] ->
-#       %{title: title, content: content, inserted_at: inserted_at, id: id}
-#     end)
-#   end
-# end
+    from(note in Note,
+      where: like(note.title, ^search_pattern) or like(note.content, ^search_pattern),
+      order_by: [desc: note.inserted_at]
+    )
+    |> Repo.all()
+  end
+end

@@ -1,18 +1,20 @@
-# defmodule Blog.Note do
-#   use Ecto.Schema
-#   import Ecto.Changeset
+defmodule Blog.Note do
+  use Ecto.Schema
+  import Ecto.Changeset
 
-#   schema "note" do
-#     field :title, :string
-#     field :content, :string
-#     field :inserted_at, :utc_datetime
-#     field :updated_at, :utc_datetime
-#   end
+  schema "note" do
+    field :title, :string
+    field :content, :string
+    field :image_path, :string
+    field :tags, :string
+    field :categories, :string
 
-#   # 유효성 검사 추가.
-#   def changeset(note, params \\ %{}) do
-#     note
-#     |> cast(params, [:title, :content])
-#     |> validate_required([:title, :content])
-#   end
-# end
+    timestamps(type: :utc_datetime)
+  end
+
+  def changeset(note, params \\ %{}) do
+    note
+    |> cast(params, [:title, :content, :image_path, :tags, :categories])
+    |> validate_required([:title, :content])
+  end
+end
