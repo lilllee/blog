@@ -64,14 +64,17 @@ defmodule BlogWeb.Admin.PostEditLive do
     end
   end
 
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="px-6 py-6 space-y-6">
       <div class="flex items-center justify-between">
         <div>
           <p class="text-xs uppercase tracking-wide text-gray-500">Admin</p>
+          
           <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= @page_title %></h1>
         </div>
+        
         <.link
           navigate={~p"/admin/posts"}
           class="text-sm font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-300"
@@ -79,27 +82,35 @@ defmodule BlogWeb.Admin.PostEditLive do
           ← Back to posts
         </.link>
       </div>
-
-      <.simple_form for={@changeset} id="post-form" as={:note} phx-change="validate" phx-submit="save">
-        <.input field={@changeset[:title]} label="Title" />
-        <.input field={@changeset[:image_path]} label="Image path" />
-        <.input field={@changeset[:tags]} label="Tags (comma-separated)" />
-        <.input field={@changeset[:categories]} label="Categories" />
+      
+      <.simple_form
+        :let={f}
+        for={@changeset}
+        id="post-form"
+        as={:note}
+        phx-change="validate"
+        phx-submit="save"
+      >
+        <.input field={f[:title]} label="Title" />
+        <.input field={f[:image_path]} label="Image path" />
+        <.input field={f[:tags]} label="Tags (comma-separated)" />
+        <.input field={f[:categories]} label="Categories" />
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <.input field={@changeset[:series_id]} label="Series ID" />
-          <.input field={@changeset[:series_order]} type="number" label="Series order" />
+          <.input field={f[:series_id]} label="Series ID" />
+          <.input field={f[:series_order]} type="number" label="Series order" />
         </div>
+        
         <.input
-          field={@changeset[:status]}
+          field={f[:status]}
           type="select"
           label="Status"
           prompt="Select status"
           options={[{"Draft", "draft"}, {"Published", "published"}]}
-        />
-        <.input field={@changeset[:content]} type="textarea" label="Markdown" class="min-h-[240px]" />
+        /> <.input field={f[:content]} type="textarea" label="Markdown" class="min-h-[240px]" />
         <:actions>
           <div class="flex gap-3">
             <.button type="submit" name="status" value="draft">Save draft</.button>
+            
             <.button
               type="submit"
               name="status"

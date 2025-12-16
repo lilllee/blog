@@ -9,8 +9,7 @@ defmodule BlogWeb.NoteLive do
     ~H"""
     <div class="px-4 pb-16 sm:px-8">
       <div class="mb-6 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-        <.link navigate={~p"/"} class="hover:text-indigo-600">Home</.link>
-        <span>/</span>
+        <.link navigate={~p"/"} class="hover:text-indigo-600">Home</.link> <span>/</span>
         <span><%= @title %></span>
       </div>
 
@@ -19,9 +18,9 @@ defmodule BlogWeb.NoteLive do
           <div class="space-y-6">
             <div class="space-y-3">
               <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100"><%= @title %></h1>
+
               <div class="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
-                <span><%= @published_on %></span>
-                <span>•</span>
+                <span><%= @published_on %></span> <span>•</span>
                 <span><%= @reading_time %> min read</span>
                 <span
                   :for={tag <- @tags}
@@ -53,11 +52,13 @@ defmodule BlogWeb.NoteLive do
               class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
             >
               <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Series navigation</p>
+
               <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div :if={@series_prev} class="flex items-center gap-2">
                   <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                     Previous
                   </span>
+
                   <.link
                     navigate={~p"/item/#{@series_prev.id}"}
                     class="text-sm font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-300"
@@ -65,10 +66,12 @@ defmodule BlogWeb.NoteLive do
                     <%= @series_prev.title %>
                   </.link>
                 </div>
+
                 <div :if={@series_next} class="flex items-center gap-2 sm:ml-auto">
                   <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                     Next
                   </span>
+
                   <.link
                     navigate={~p"/item/#{@series_next.id}"}
                     class="text-sm font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-300"
@@ -84,6 +87,7 @@ defmodule BlogWeb.NoteLive do
               class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
             >
               <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Related posts</p>
+
               <div class="mt-3 grid gap-3 md:grid-cols-2">
                 <%= for rel <- @related do %>
                   <.link navigate={~p"/item/#{rel.id}"}>
@@ -91,12 +95,15 @@ defmodule BlogWeb.NoteLive do
                       <p class="text-xs text-gray-500 dark:text-gray-400">
                         <%= format_date(rel.inserted_at) %>
                       </p>
+
                       <h3 class="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
                         <%= rel.title %>
                       </h3>
+
                       <p class="mt-1 text-sm text-gray-600 line-clamp-2 dark:text-gray-300">
                         <%= excerpt(rel.content) %>
                       </p>
+
                       <div class="mt-2 flex flex-wrap gap-1">
                         <span
                           :for={tag <- Markdown.tag_list(rel.tags)}
@@ -112,9 +119,18 @@ defmodule BlogWeb.NoteLive do
             </section>
           </div>
 
-          <aside :if={@toc != []} class="lg:sticky lg:top-10">
-            <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <aside class="hidden space-y-4 md:block lg:sticky lg:top-10">
+            <.live_component
+              module={BlogWeb.TimelinePanel}
+              id="timeline-panel"
+              current_note_id={@note.id}
+            />
+            <div
+              :if={@toc != []}
+              class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+            >
               <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Table of contents</p>
+
               <nav class="mt-3 space-y-1">
                 <%= for item <- @toc do %>
                   <a
