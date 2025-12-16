@@ -36,6 +36,7 @@ defmodule BlogWeb.Router do
     live "/item/:id", NoteLive, :show
     get "/rss.xml", FeedController, :rss
     get "/sitemap.xml", FeedController, :sitemap
+    live "/about", AboutLive, :index
     # live "/add", PageController, :add
     # live "/list/:sort", PageController, :list
     # live "/logs", LogLive, :logs
@@ -48,6 +49,8 @@ defmodule BlogWeb.Router do
     live "/posts", Admin.PostIndexLive, :index
     live "/posts/new", Admin.PostEditLive, :new
     live "/posts/:id/edit", Admin.PostEditLive, :edit
+    live "/about", Admin.AboutEditLive, :edit
+    # live "/about", AboutLive, :index
   end
 
   # Other scopes may use custom stacks.

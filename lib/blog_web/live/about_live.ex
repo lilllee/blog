@@ -50,18 +50,18 @@ defmodule BlogWeb.AboutLive do
         <.link navigate={~p"/"} class="hover:text-indigo-600">Home</.link> <span>/</span>
         <span>About</span>
       </div>
-      
+
       <div class="max-w-4xl mx-auto space-y-12">
         <!-- Header Section -->
         <header class="text-center space-y-3">
           <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100">
             <%= @header["name"] || "Your Name" %>
           </h1>
-          
+
           <p class="text-xl text-gray-600 dark:text-gray-300">
             <%= @header["title"] || "Your Title" %>
           </p>
-          
+
           <div class="flex flex-wrap items-center justify-center gap-4 text-sm text-gray-600 dark:text-gray-300">
             <%= if @header["email"] && @header["email"] != "" do %>
               <a
@@ -71,15 +71,15 @@ defmodule BlogWeb.AboutLive do
                 <%= @header["email"] %>
               </a>
             <% end %>
-            
+
             <%= if @header["phone"] && @header["phone"] != "" do %>
               <span><%= @header["phone"] %></span>
             <% end %>
-            
+
             <%= if @header["location"] && @header["location"] != "" do %>
               <span><%= @header["location"] %></span>
             <% end %>
-            
+
             <%= if @header["linkedin"] && @header["linkedin"] != "" do %>
               <a
                 href={@header["linkedin"]}
@@ -89,7 +89,7 @@ defmodule BlogWeb.AboutLive do
                 LinkedIn
               </a>
             <% end %>
-            
+
             <%= if @header["github"] && @header["github"] != "" do %>
               <a
                 href={@header["github"]}
@@ -99,7 +99,7 @@ defmodule BlogWeb.AboutLive do
                 GitHub
               </a>
             <% end %>
-            
+
             <%= if @header["website"] && @header["website"] != "" do %>
               <a
                 href={@header["website"]}
@@ -121,14 +121,14 @@ defmodule BlogWeb.AboutLive do
         <%= if @skills != [] do %>
           <section>
             <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Skills</h2>
-            
+
             <div class="space-y-4">
               <%= for skill_group <- @skills do %>
                 <div>
                   <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">
                     <%= skill_group["category"] %>
                   </h3>
-                  
+
                   <div class="flex flex-wrap gap-2">
                     <%= for item <- skill_group["items"] do %>
                       <span class="rounded-full bg-indigo-50 px-3 py-1 text-sm font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-100">
@@ -145,25 +145,25 @@ defmodule BlogWeb.AboutLive do
         <%= if @experience != [] do %>
           <section>
             <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Experience</h2>
-            
+
             <div class="space-y-6">
               <%= for exp <- @experience do %>
                 <div class="border-l-2 border-indigo-600 pl-4">
                   <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                     <%= exp["position"] %>
                   </h3>
-                  
+
                   <p class="text-gray-600 dark:text-gray-300">
                     <%= exp["company"] %>
                     <%= if exp["location"] do %>
                       · <%= exp["location"] %>
                     <% end %>
                   </p>
-                  
+
                   <p class="text-sm text-gray-500 dark:text-gray-400">
                     <%= exp["start_date"] %> - <%= exp["end_date"] || "Present" %>
                   </p>
-                  
+
                   <%= if exp["description_md"] do %>
                     <div class="mt-2 prose prose-sm prose-slate max-w-none dark:prose-invert">
                       <%= Markdown.render(exp["description_md"]) %>
@@ -178,7 +178,7 @@ defmodule BlogWeb.AboutLive do
         <%= if @projects != [] do %>
           <section>
             <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Projects</h2>
-            
+
             <div class="grid gap-4 md:grid-cols-2">
               <%= for project <- @projects do %>
                 <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
@@ -195,13 +195,13 @@ defmodule BlogWeb.AboutLive do
                       <%= project["name"] %>
                     <% end %>
                   </h3>
-                  
+
                   <%= if project["description_md"] do %>
                     <div class="mt-2 prose prose-sm prose-slate max-w-none dark:prose-invert">
                       <%= Markdown.render(project["description_md"]) %>
                     </div>
                   <% end %>
-                  
+
                   <%= if project["tech_stack"] && project["tech_stack"] != [] do %>
                     <div class="mt-3 flex flex-wrap gap-1">
                       <%= for tech <- project["tech_stack"] do %>
@@ -220,20 +220,20 @@ defmodule BlogWeb.AboutLive do
         <%= if @education != [] do %>
           <section>
             <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Education</h2>
-            
+
             <div class="space-y-4">
               <%= for edu <- @education do %>
                 <div>
                   <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                     <%= edu["degree"] %> <%= if edu["field"], do: "in #{edu["field"]}" %>
                   </h3>
-                  
+
                   <p class="text-gray-600 dark:text-gray-300"><%= edu["school"] %></p>
-                  
+
                   <p class="text-sm text-gray-500 dark:text-gray-400">
                     <%= edu["start_date"] %> - <%= edu["end_date"] || "Present" %>
                   </p>
-                  
+
                   <%= if edu["description_md"] do %>
                     <div class="mt-2 prose prose-sm prose-slate max-w-none dark:prose-invert">
                       <%= Markdown.render(edu["description_md"]) %>
@@ -250,7 +250,7 @@ defmodule BlogWeb.AboutLive do
             <%= if @additional["certifications"] && @additional["certifications"] != [] do %>
               <div>
                 <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Certifications</h3>
-                
+
                 <ul class="list-disc list-inside text-gray-700 dark:text-gray-300">
                   <%= for cert <- @additional["certifications"] do %>
                     <li><%= cert %></li>
@@ -258,11 +258,11 @@ defmodule BlogWeb.AboutLive do
                 </ul>
               </div>
             <% end %>
-            
+
             <%= if @additional["languages"] && @additional["languages"] != [] do %>
               <div>
                 <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Languages</h3>
-                
+
                 <div class="flex flex-wrap gap-2">
                   <%= for lang <- @additional["languages"] do %>
                     <span class="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-200">
@@ -272,11 +272,11 @@ defmodule BlogWeb.AboutLive do
                 </div>
               </div>
             <% end %>
-            
+
             <%= if @additional["interests"] && @additional["interests"] != [] do %>
               <div>
                 <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Interests</h3>
-                
+
                 <p class="text-gray-700 dark:text-gray-300">
                   <%= Enum.join(@additional["interests"], ", ") %>
                 </p>
