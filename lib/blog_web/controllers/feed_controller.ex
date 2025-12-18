@@ -29,10 +29,25 @@ defmodule BlogWeb.FeedController do
     |> send_resp(200, xml)
   end
 
+  def robots(conn, _params) do
+    base = BlogWeb.Endpoint.url()
+
+    content = """
+    User-agent: *
+    Allow: /
+
+    Sitemap: #{base}/sitemap.xml
+    """
+
+    conn
+    |> put_resp_content_type("text/plain; charset=utf-8")
+    |> send_resp(200, content)
+  end
+
   defp build_rss(posts, base) do
     items =
       Enum.map_join(posts, "\n", fn post ->
-        link = base <> ~p"/item/#{post.id}"
+        link = base <> ~p"/posts/#{post.slug}"
 
         """
         <item>
@@ -65,7 +80,7 @@ defmodule BlogWeb.FeedController do
         sitemap_url("#{base}/list")
       ] ++
         Enum.map(posts, fn post ->
-          sitemap_url(base <> ~p"/item/#{post.id}", post.published_at || post.inserted_at)
+          sitemap_url(base <> ~p"/posts/#{post.slug}", post.published_at || post.inserted_at)
         end) ++
         Enum.map(tags, fn tag ->
           query = URI.encode(tag)

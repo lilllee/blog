@@ -33,9 +33,16 @@ defmodule BlogWeb.Router do
 
     live "/", PageController, :home
     live "/list", PageController, :list
-    live "/item/:id", NoteLive, :show
+
+    # New slug-based URL
+    live "/posts/:slug", NoteLive, :show
+
+    # 301 redirect from old ID-based URL to new slug-based URL
+    get "/item/:id", RedirectController, :old_item_to_slug
+
     get "/rss.xml", FeedController, :rss
     get "/sitemap.xml", FeedController, :sitemap
+    get "/robots.txt", FeedController, :robots
     live "/about", AboutLive, :index
     # live "/add", PageController, :add
     # live "/list/:sort", PageController, :list

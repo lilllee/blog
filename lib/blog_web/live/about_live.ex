@@ -10,34 +10,44 @@ defmodule BlogWeb.AboutLive do
 
   alias Blog.ResumeData
   alias BlogWeb.Markdown
+  alias BlogWeb.SEO
 
   @impl true
   def mount(_params, _session, socket) do
+    seo =
+      SEO.seo_assigns(:page, %{
+        title: "About",
+        description: "Professional background, skills, and experience.",
+        path: "/about"
+      })
+
     case ResumeData.get_resume() do
       {:ok, resume} ->
         {:ok,
-         assign(socket,
+         socket
+         |> assign(seo)
+         |> assign(
            resume: resume,
            header: decode_json(resume.header, %{}),
            skills: decode_json(resume.skills, []),
            experience: decode_json(resume.experience, []),
            projects: decode_json(resume.projects, []),
            education: decode_json(resume.education, []),
-           additional: decode_json(resume.additional, %{}),
-           page_title: "About"
+           additional: decode_json(resume.additional, %{})
          )}
 
       {:error, _} ->
         {:ok,
-         assign(socket,
+         socket
+         |> assign(seo)
+         |> assign(
            resume: nil,
            header: %{},
            skills: [],
            experience: [],
            projects: [],
            education: [],
-           additional: %{},
-           page_title: "About"
+           additional: %{}
          )}
     end
   end

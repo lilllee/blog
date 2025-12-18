@@ -4,6 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={Plug.CSRFProtection.get_csrf_token()} />
+    <%!-- Google Search Console Verification --%>
+    <%= if System.get_env("GOOGLE_SITE_VERIFICATION") do %>
+      <meta name="google-site-verification" content={System.get_env("GOOGLE_SITE_VERIFICATION")} />
+    <% end %>
     <% meta = assigns[:meta] || %{}
     base_url = BlogWeb.Endpoint.url()
     title = meta[:title] || assigns[:page_title] || "Blog"
@@ -36,6 +40,32 @@
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={image} />
+    <%= if meta[:type] == "article" do %>
+      <meta property="article:published_time" content={meta[:published_time]} />
+      <%= if meta[:modified_time] do %>
+        <meta property="article:modified_time" content={meta[:modified_time]} />
+      <% end %>
+      <meta property="article:author" content={meta[:author] || "Your Name"} />
+    <% end %>
+    <%= if assigns[:json_ld] do %>
+      <script type="application/ld+json">
+        <%= @json_ld %>
+      </script>
+    <% end %>
+    <%!-- Google Analytics 4 --%>
+    <%= if ga4_id = System.get_env("GA4_MEASUREMENT_ID") do %>
+      <script async src={"https://www.googletagmanager.com/gtag/js?id=#{ga4_id}"}>
+      </script>
+      <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '<%= ga4_id %>', {
+          anonymize_ip: true,
+          cookie_flags: 'SameSite=None;Secure'
+        });
+      </script>
+    <% end %>
 
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
     <link

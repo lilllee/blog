@@ -3,6 +3,7 @@ defmodule BlogWeb.NoteLive do
 
   alias Blog.NoteData
   alias BlogWeb.Markdown
+  alias BlogWeb.SEO
 
   @impl true
   def render(assigns) do
@@ -60,7 +61,7 @@ defmodule BlogWeb.NoteLive do
                   </span>
 
                   <.link
-                    navigate={~p"/item/#{@series_prev.id}"}
+                    navigate={~p"/posts/#{@series_prev.slug}"}
                     class="text-sm font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-300"
                   >
                     <%= @series_prev.title %>
@@ -73,7 +74,7 @@ defmodule BlogWeb.NoteLive do
                   </span>
 
                   <.link
-                    navigate={~p"/item/#{@series_next.id}"}
+                    navigate={~p"/posts/#{@series_next.slug}"}
                     class="text-sm font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-300"
                   >
                     <%= @series_next.title %>
@@ -90,7 +91,7 @@ defmodule BlogWeb.NoteLive do
 
               <div class="mt-3 grid gap-3 md:grid-cols-2">
                 <%= for rel <- @related do %>
-                  <.link navigate={~p"/item/#{rel.id}"}>
+                  <.link navigate={~p"/posts/#{rel.slug}"}>
                     <div class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-gray-800 dark:bg-gray-950">
                       <p class="text-xs text-gray-500 dark:text-gray-400">
                         <%= format_date(rel.inserted_at) %>
@@ -157,8 +158,8 @@ defmodule BlogWeb.NoteLive do
   end
 
   @impl true
-  def mount(%{"id" => id}, _session, socket) do
-    case NoteData.get_published_note(id) do
+  def mount(%{"slug" => slug}, _session, socket) do
+    case NoteData.get_published_note_by_slug(slug) do
       nil ->
         {:ok,
          assign(socket,
@@ -187,8 +188,12 @@ defmodule BlogWeb.NoteLive do
         related = NoteData.related_notes(note, 5)
         %{prev: series_prev, next: series_next} = NoteData.series_neighbors(note)
 
+        seo = SEO.seo_assigns(:post, note)
+
         {:ok,
-         assign(socket,
+         socket
+         |> assign(seo)
+         |> assign(
            note: note,
            title: note.title,
            image_path: note.image_path,
@@ -199,30 +204,9 @@ defmodule BlogWeb.NoteLive do
            published_on: format_date(note.published_at || note.inserted_at),
            related: related,
            series_prev: series_prev,
-           series_next: series_next,
-           page_title: note.title,
-           meta: build_meta(note)
+           series_next: series_next
          )}
     end
-  end
-
-  defp build_meta(note) do
-    base = BlogWeb.Endpoint.url()
-    path = ~p"/item/#{note.id}"
-    url = base <> path
-
-    description =
-      (note.raw_markdown || note.content)
-      |> to_string()
-      |> String.slice(0, 140)
-
-    %{
-      title: note.title,
-      description: description,
-      url: url,
-      image: note.image_path && base <> "/images/" <> note.image_path,
-      type: "article"
-    }
   end
 
   defp format_date(%DateTime{} = date), do: Calendar.strftime(date, "%Y-%m-%d")

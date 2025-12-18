@@ -4,6 +4,7 @@ defmodule Blog.Note do
 
   schema "note" do
     field :title, :string
+    field :slug, :string
     field :content, :string
     field :raw_markdown, :string
     field :rendered_html, :string
@@ -25,6 +26,7 @@ defmodule Blog.Note do
     note
     |> cast(params, [
       :title,
+      :slug,
       :content,
       :raw_markdown,
       :rendered_html,
@@ -41,5 +43,20 @@ defmodule Blog.Note do
     ])
     |> validate_required([:title, :content])
     |> validate_inclusion(:status, ["draft", "published"])
+    |> maybe_generate_slug()
+    |> unique_constraint(:slug)
   end
+
+  defp maybe_generate_slug(%Ecto.Changeset{valid?: true} = changeset) do
+    case get_change(changeset, :slug) do
+      nil ->
+        title = get_field(changeset, :title)
+        put_change(changeset, :slug, Blog.Slug.generate(title))
+
+      _slug ->
+        changeset
+    end
+  end
+
+  defp maybe_generate_slug(changeset), do: changeset
 end

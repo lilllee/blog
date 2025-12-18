@@ -4,6 +4,7 @@ defmodule BlogWeb.PageController do
   alias Blog.NoteData
   alias BlogWeb.Markdown
   alias BlogWeb.Scope
+  alias BlogWeb.SEO
 
   @impl true
   def render(assigns) do
@@ -85,7 +86,7 @@ defmodule BlogWeb.PageController do
 
           <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
             <%= for n <- @notes do %>
-              <.link navigate={~p"/item/#{n.id}"}>
+              <.link navigate={~p"/posts/#{n.slug}"}>
                 <article class="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
                   <div class="aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-700">
                     <img
@@ -143,21 +144,18 @@ defmodule BlogWeb.PageController do
   @impl true
   def mount(_params, %{"remote_ip" => remote_ip}, socket) do
     notes = NoteData.list_notes()
+    seo = SEO.seo_assigns(:blog, notes)
 
     {:ok,
-     assign(socket,
+     socket
+     |> assign(seo)
+     |> assign(
        remote_ip: remote_ip,
        scope: %Scope{current_ip: remote_ip},
        query: "",
        active_tag: "",
        notes: decorate_notes(notes),
-       available_tags: NoteData.list_tags(),
-       page_title: "Home",
-       meta: %{
-         title: "Personal development blog",
-         description: "Elixir, Phoenix, and daily engineering notes.",
-         url: "/"
-       }
+       available_tags: NoteData.list_tags()
      )}
   end
 
@@ -199,6 +197,7 @@ defmodule BlogWeb.PageController do
     Enum.map(notes, fn note ->
       %{
         id: note.id,
+        slug: note.slug,
         title: note.title,
         excerpt: excerpt(note.raw_markdown || note.content),
         tags: Markdown.tag_list(note.tags),

@@ -5,7 +5,8 @@
       "Bash(mix ecto.create:*)",
       "Bash(mix ecto.migrate:*)",
       "Bash(mix compile:*)",
-      "Bash(mix run:*)"
+      "Bash(mix run:*)",
+      "Bash(mix ecto.gen.migration:*)"
     ]
   }
 }

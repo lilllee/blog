@@ -13,6 +13,12 @@ defmodule Blog.NoteData do
     |> Repo.one()
   end
 
+  def get_published_note_by_slug(slug) do
+    Note
+    |> where([n], n.slug == ^slug and n.status == "published" and is_nil(n.deleted_at))
+    |> Repo.one()
+  end
+
   def get_admin_note!(id), do: Repo.get!(Note, id)
 
   def list_notes(opts \\ %{}) do
@@ -193,6 +199,7 @@ defmodule Blog.NoteData do
   defp select_timeline_fields(query) do
     select(query, [n], %{
       id: n.id,
+      slug: n.slug,
       title: n.title,
       tags: n.tags,
       published_at: n.published_at,

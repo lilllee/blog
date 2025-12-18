@@ -169,7 +169,7 @@ defmodule BlogWeb.TimelinePanel do
 
     ~H"""
     <.link
-      navigate={~p"/item/#{@item.id}"}
+      navigate={~p"/posts/#{@item.slug}"}
       class={[
         "block rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-gray-800 dark:bg-gray-950",
         @current_note_id == @item.id &&
