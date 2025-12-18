@@ -19,6 +19,7 @@
             <button
               id="theme-toggle"
               type="button"
+              aria-pressed="false"
               class="inline-flex items-center p-2 w-10 h-10 justify-center text-gray-500 dark:text-gray-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-600"
             >
               <span class="sr-only">Toggle Dark Mode</span>
@@ -105,7 +106,10 @@
   <footer class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 py-6">
     <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col md:flex-row justify-between items-center">
-        <p class="text-sm">&copy; <%= Date.utc_today().year %> junho lee. All rights reserved.</p>
+        <p class="text-sm">
+          &copy; <%= Date.utc_today().year %> junho lee. Developer portfolio blog.
+          <a href="/about" class="ml-2 underline underline-offset-4 hover:text-gray-900 dark:hover:text-gray-100">About</a>
+        </p>
         <div class="mt-4 md:mt-0">
           <a href="/privacy" class="text-sm hover:underline mr-4">Privacy Policy</a>
           <a href="/terms" class="text-sm hover:underline">Terms of Service</a>
@@ -130,12 +134,6 @@
     const lightIcon = document.getElementById('theme-toggle-light-icon');
     const html = document.documentElement;
 
-    // 다크 모드 상태를 로컬 스토리지에서 가져오기
-    const currentTheme = localStorage.getItem('theme');
-    if (currentTheme) {
-      html.classList.toggle('dark', currentTheme === 'dark');
-    }
-
     function updateIcons() {
       if (html.classList.contains('dark')) {
         lightIcon.classList.remove('hidden');
@@ -144,7 +142,17 @@
         lightIcon.classList.add('hidden');
         darkIcon.classList.remove('hidden');
       }
+
+      if (themeToggleBtn) {
+        themeToggleBtn.setAttribute('aria-pressed', html.classList.contains('dark') ? 'true' : 'false');
+        themeToggleBtn.title = html.classList.contains('dark') ? 'Switch to light mode' : 'Switch to dark mode';
+      }
     }
+
+    // Apply initial theme: saved preference → system preference
+    const storedTheme = localStorage.getItem('theme');
+    const preferredTheme = storedTheme || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    html.classList.toggle('dark', preferredTheme === 'dark');
 
     updateIcons();
 

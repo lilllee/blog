@@ -12,19 +12,21 @@ defmodule BlogWeb.TimelinePanel do
     {:ok,
      assign(socket,
        modes: @modes,
-       current_note_id: nil,
-       mode: "recent_activity",
-       recent_loaded: false,
-       recent: [],
-       archive_loaded: false,
-       archive_groups: [],
-       expanded_archive_years: MapSet.new(),
-       tags_loaded: false,
-       available_tags: [],
-       selected_tag: "",
-       tag_loaded_for: nil,
-       tag_groups: [],
-       expanded_tag_years: MapSet.new()
+        current_note_id: nil,
+        mode: "recent_activity",
+        recent_loaded: false,
+        recent: [],
+        archive_loaded: false,
+        archive_groups: [],
+        expanded_archive_years: MapSet.new(),
+        tags_loaded: false,
+        available_tags: [],
+        tag_counts_loaded: false,
+        tag_counts: %{},
+        selected_tag: "",
+        tag_loaded_for: nil,
+        tag_groups: [],
+        expanded_tag_years: MapSet.new()
      )}
   end
 
@@ -42,7 +44,7 @@ defmodule BlogWeb.TimelinePanel do
   def render(assigns) do
     ~H"""
     <section class="space-y-4">
-      <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900 lg:max-h-[calc(100vh-6rem)] lg:overflow-hidden lg:flex lg:flex-col">
         <div class="flex items-center justify-between gap-2">
           <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Timeline</p>
           <button
@@ -55,30 +57,37 @@ defmodule BlogWeb.TimelinePanel do
           </button>
         </div>
 
-        <div id={"#{@id}-body"} class="mt-3 hidden space-y-4 lg:block">
-          <div class="inline-flex rounded-xl bg-gray-100 p-1 dark:bg-gray-800">
-            <button
-              :for={mode <- @modes}
-              type="button"
-              phx-click="timeline_set_mode"
-              phx-target={@myself}
-              phx-value-mode={mode}
-              class={[
-                "rounded-lg px-2.5 py-1 text-xs font-semibold transition",
-                @mode == mode &&
-                  "bg-white text-indigo-700 shadow-sm dark:bg-gray-950 dark:text-indigo-200",
-                @mode != mode &&
-                  "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
-              ]}
-            >
-              <%= mode_label(mode) %>
-            </button>
+        <div id={"#{@id}-body"} class="mt-3 hidden space-y-4 lg:block lg:flex-1 lg:overflow-y-auto lg:pr-1">
+          <div class="sticky top-0 z-10 bg-white/95 pb-2 backdrop-blur dark:bg-gray-900/95">
+            <div class="inline-flex rounded-xl bg-gray-100 p-1 dark:bg-gray-800">
+              <button
+                :for={mode <- @modes}
+                type="button"
+                phx-click="timeline_set_mode"
+                phx-target={@myself}
+                phx-value-mode={mode}
+                class={[
+                  "rounded-lg px-2.5 py-1 text-xs font-semibold transition",
+                  @mode == mode &&
+                    "bg-white text-indigo-700 shadow-sm dark:bg-gray-950 dark:text-indigo-200",
+                  @mode != mode &&
+                    "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
+                ]}
+              >
+                <%= mode_label(mode) %>
+              </button>
+            </div>
           </div>
 
           <div :if={@mode == "recent_activity"} class="space-y-2">
             <.timeline_empty :if={@recent == []} label="No recent posts yet." />
-            <%= for item <- @recent do %>
-              <.timeline_item current_note_id={@current_note_id} item={item} show_tags />
+            <%= for {item, index} <- Enum.with_index(@recent) do %>
+              <.timeline_item
+                current_note_id={@current_note_id}
+                item={item}
+                show_tags
+                highlight={index == 0}
+              />
             <% end %>
           </div>
 
@@ -90,7 +99,7 @@ defmodule BlogWeb.TimelinePanel do
                 kind="archive"
                 year={group.year}
                 count={group.count}
-                items={group.entries}
+                months={group.months}
                 expanded?={MapSet.member?(@expanded_archive_years, group.year)}
                 current_note_id={@current_note_id}
                 target={@myself}
@@ -99,11 +108,12 @@ defmodule BlogWeb.TimelinePanel do
           </div>
 
           <div :if={@mode == "tag_timeline"} class="space-y-3">
-            <div class="flex items-center justify-between gap-3">
-              <label class="text-xs font-semibold text-gray-600 dark:text-gray-300" for={"#{@id}-tag"}>
-                Tag
-              </label>
-              <select
+            <div class="sticky top-12 z-10 rounded-xl bg-white/95 py-2 backdrop-blur dark:bg-gray-900/95">
+              <div class="flex items-center justify-between gap-3">
+                <label class="text-xs font-semibold text-gray-600 dark:text-gray-300" for={"#{@id}-tag"}>
+                  Tag
+                </label>
+                <select
                 id={"#{@id}-tag"}
                 name="tag"
                 phx-change="timeline_select_tag"
@@ -114,9 +124,13 @@ defmodule BlogWeb.TimelinePanel do
                   No tags
                 </option>
                 <option :for={tag <- @available_tags} value={tag} selected={tag == @selected_tag}>
-                  <%= tag %>
+                  <%= if count = @tag_counts[tag], do: "#{tag} (#{count})", else: tag %>
                 </option>
               </select>
+            </div>
+              <p :if={@selected_tag != "" and @tag_counts[@selected_tag]} class="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+                <%= @tag_counts[@selected_tag] %> posts tagged “<%= @selected_tag %>”
+              </p>
             </div>
 
             <.timeline_empty :if={@available_tags == []} label="No tags available yet." />
@@ -131,7 +145,7 @@ defmodule BlogWeb.TimelinePanel do
                 kind="tag"
                 year={group.year}
                 count={group.count}
-                items={group.entries}
+                months={group.months}
                 expanded?={MapSet.member?(@expanded_tag_years, group.year)}
                 current_note_id={@current_note_id}
                 target={@myself}
@@ -157,6 +171,7 @@ defmodule BlogWeb.TimelinePanel do
   attr :item, :map, required: true
   attr :current_note_id, :any, default: nil
   attr :show_tags, :boolean, default: false
+  attr :highlight, :boolean, default: false
 
   defp timeline_item(assigns) do
     date = display_date(assigns.item)
@@ -172,13 +187,23 @@ defmodule BlogWeb.TimelinePanel do
       navigate={~p"/posts/#{@item.slug}"}
       class={[
         "block rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-gray-800 dark:bg-gray-950",
+        @highlight &&
+          "border-indigo-200 bg-indigo-50/60 dark:border-indigo-900/50 dark:bg-indigo-900/20",
         @current_note_id == @item.id &&
           "border-indigo-200 bg-indigo-50 dark:border-indigo-900/50 dark:bg-indigo-900/20"
       ]}
     >
-      <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2">
-        <%= @item.title %>
-      </p>
+      <div class="flex items-start justify-between gap-2">
+        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2">
+          <%= @item.title %>
+        </p>
+        <span
+          :if={@highlight}
+          class="shrink-0 rounded-full bg-indigo-600/10 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 dark:bg-indigo-400/10 dark:text-indigo-200"
+        >
+          Latest
+        </span>
+      </div>
       <p class="mt-1 text-xs text-gray-500 dark:text-gray-400"><%= format_date(@date) %></p>
       <div :if={@tags != []} class="mt-2 flex flex-wrap gap-1">
         <span
@@ -196,7 +221,7 @@ defmodule BlogWeb.TimelinePanel do
   attr :kind, :string, values: ["archive", "tag"], required: true
   attr :year, :integer, required: true
   attr :count, :integer, required: true
-  attr :items, :list, required: true
+  attr :months, :list, default: []
   attr :expanded?, :boolean, required: true
   attr :current_note_id, :any, default: nil
   attr :target, :any, required: true
@@ -228,11 +253,19 @@ defmodule BlogWeb.TimelinePanel do
         phx-remove={hide("##{@id}-items")}
         class="hidden border-t border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-950"
       >
-        <div class="space-y-2">
-          <%= for item <- @items do %>
-            <.timeline_item current_note_id={@current_note_id} item={item} />
-          <% end %>
-        </div>
+        <%= for month <- @months do %>
+          <div class="first:pt-0 pt-3">
+            <div class="flex items-center justify-between text-xs font-semibold text-gray-600 dark:text-gray-300">
+              <span><%= month.label %></span>
+              <span class="text-[11px] text-gray-500 dark:text-gray-400"><%= month.count %></span>
+            </div>
+            <div class="mt-2 space-y-2">
+              <%= for item <- month.entries do %>
+                <.timeline_item current_note_id={@current_note_id} item={item} />
+              <% end %>
+            </div>
+          </div>
+        <% end %>
       </div>
     </div>
     """
@@ -303,7 +336,7 @@ defmodule BlogWeb.TimelinePanel do
     else
       groups =
         NoteData.timeline_year_archive()
-        |> group_by_year()
+        |> group_by_year_month()
 
       expanded_years = default_expanded_years(groups)
 
@@ -325,7 +358,12 @@ defmodule BlogWeb.TimelinePanel do
   end
 
   defp ensure_tag_timeline_loaded(socket) do
-    socket = ensure_tags_loaded(socket)
+    socket =
+      socket
+      |> ensure_archive_loaded()
+      |> ensure_tag_counts_loaded()
+      |> ensure_tags_loaded()
+
     selected = default_selected_tag(socket.assigns.selected_tag, socket.assigns.available_tags)
 
     socket =
@@ -344,7 +382,7 @@ defmodule BlogWeb.TimelinePanel do
     else
       groups =
         NoteData.timeline_tag_timeline(tag)
-        |> group_by_year()
+        |> group_by_year_month()
 
       expanded_years = default_expanded_years(groups)
 
@@ -356,22 +394,68 @@ defmodule BlogWeb.TimelinePanel do
     end
   end
 
-  defp group_by_year(entries) do
+  defp ensure_tag_counts_loaded(socket) do
+    if socket.assigns.tag_counts_loaded do
+      socket
+    else
+      counts = tag_counts_from_archive(socket.assigns.archive_groups)
+      assign(socket, tag_counts_loaded: true, tag_counts: counts)
+    end
+  end
+
+  defp tag_counts_from_archive(groups) do
+    groups
+    |> Enum.flat_map(fn group -> Enum.flat_map(group.months, & &1.entries) end)
+    |> Enum.flat_map(fn entry -> Markdown.tag_list(entry.tags) end)
+    |> Enum.frequencies()
+  end
+
+  defp group_by_year_month(entries) do
     entries
     |> Enum.reduce([], fn entry, acc ->
       year = entry |> display_date() |> year_of()
+      month = entry |> display_date() |> month_of()
 
       case acc do
-        [%{year: ^year, entries: group_entries} = group | rest] ->
-          [%{group | entries: [entry | group_entries]} | rest]
+        [%{year: ^year, months: months} = group | rest] ->
+          months =
+            case months do
+              [%{month: ^month, entries: month_entries} = month_group | month_rest] ->
+                [%{month_group | entries: [entry | month_entries]} | month_rest]
+
+              _ ->
+                [%{month: month, entries: [entry]} | months]
+            end
+
+          [%{group | months: months} | rest]
 
         _ ->
-          [%{year: year, entries: [entry]} | acc]
+          [%{year: year, months: [%{month: month, entries: [entry]}]} | acc]
       end
     end)
     |> Enum.reverse()
     |> Enum.map(fn group ->
-      %{year: group.year, count: length(group.entries), entries: Enum.reverse(group.entries)}
+      months =
+        group.months
+        |> Enum.reverse()
+        |> Enum.map(fn month_group ->
+          entries = Enum.reverse(month_group.entries)
+
+          %{
+            month: month_group.month,
+            label: month_label(month_group.month),
+            count: length(entries),
+            entries: entries
+          }
+        end)
+
+      count = Enum.reduce(months, 0, fn m, sum -> sum + m.count end)
+
+      %{
+        year: group.year,
+        count: count,
+        months: months
+      }
     end)
   end
 
@@ -387,6 +471,14 @@ defmodule BlogWeb.TimelinePanel do
   defp year_of(%DateTime{} = dt), do: dt.year
   defp year_of(%NaiveDateTime{} = dt), do: dt.year
   defp year_of(_), do: 0
+
+  defp month_of(%DateTime{} = dt), do: dt.month
+  defp month_of(%NaiveDateTime{} = dt), do: dt.month
+  defp month_of(_), do: 1
+
+  defp month_label(month) when month in 1..12 do
+    ~w(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec) |> Enum.at(month - 1)
+  end
 
   defp format_date(%DateTime{} = date), do: Calendar.strftime(date, "%Y-%m-%d")
   defp format_date(%NaiveDateTime{} = date), do: Calendar.strftime(date, "%Y-%m-%d")
