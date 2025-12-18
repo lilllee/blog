@@ -3,6 +3,7 @@ defmodule BlogWeb.Admin.PostEditLive do
 
   alias Blog.Note
   alias Blog.NoteData
+  alias BlogWeb.Uploads
 
   @impl true
   def mount(params, _session, socket) do
@@ -15,10 +16,16 @@ defmodule BlogWeb.Admin.PostEditLive do
     changeset = NoteData.change_note(note)
 
     {:ok,
-     assign(socket,
+     socket
+     |> assign(
        note: note,
        changeset: changeset,
        page_title: page_title(socket.assigns.live_action)
+     )
+     |> allow_upload(:image,
+       accept: ~w(.jpg .jpeg .png .gif .webp),
+       max_entries: 1,
+       max_file_size: 5_000_000
      )}
   end
 
@@ -35,6 +42,8 @@ defmodule BlogWeb.Admin.PostEditLive do
   def handle_event("save", %{"note" => note_params} = params, socket) do
     status = params["status"] || note_params["status"] || "draft"
     attrs = Map.put(note_params, "status", status)
+
+    {attrs, socket} = maybe_put_uploaded_image(attrs, socket)
     save_note(socket.assigns.live_action, socket.assigns.note, attrs, socket)
   end
 
@@ -90,9 +99,38 @@ defmodule BlogWeb.Admin.PostEditLive do
         as={:note}
         phx-change="validate"
         phx-submit="save"
+        multipart
       >
         <.input field={f[:title]} label="Title" />
-        <.input field={f[:image_path]} label="Image path" />
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold leading-6 text-zinc-800">
+            Cover image upload
+          </label>
+          <.live_file_input upload={@uploads.image} class="block w-full text-sm" />
+          <p class="text-xs text-gray-500">
+            Saves to <code>priv/static/images/uploads</code> and stores <code>uploads/&lt;filename&gt;</code> in
+            <code>image_path</code>.
+          </p>
+          <%= for entry <- @uploads.image.entries do %>
+            <div class="flex items-center gap-3">
+              <div class="h-14 w-20 overflow-hidden rounded-md border border-gray-200 bg-gray-50">
+                <.live_img_preview entry={entry} class="h-full w-full object-cover" />
+              </div>
+              <div class="flex-1">
+                <p class="text-xs text-gray-600"><%= entry.client_name %></p>
+                <progress class="w-full" value={entry.progress} max="100"><%= entry.progress %>%</progress>
+                <%= for err <- upload_errors(@uploads.image, entry) do %>
+                  <p class="text-xs text-rose-600"><%= upload_error_to_string(err) %></p>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+          <%= for err <- upload_errors(@uploads.image) do %>
+            <p class="text-xs text-rose-600"><%= upload_error_to_string(err) %></p>
+          <% end %>
+        </div>
+
+        <.input field={f[:image_path]} label="Cover image path (manual)" />
         <.input field={f[:tags]} label="Tags (comma-separated)" />
         <.input field={f[:categories]} label="Categories" />
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -128,4 +166,21 @@ defmodule BlogWeb.Admin.PostEditLive do
 
   defp page_title(:new), do: "New post"
   defp page_title(:edit), do: "Edit post"
+
+  defp maybe_put_uploaded_image(attrs, socket) do
+    paths =
+      consume_uploaded_entries(socket, :image, fn meta, entry ->
+        {:ok, Uploads.store_note_image!(meta, entry)}
+      end)
+
+    case paths do
+      [rel_path] -> {Map.put(attrs, "image_path", rel_path), socket}
+      _ -> {attrs, socket}
+    end
+  end
+
+  defp upload_error_to_string(:too_large), do: "File too large"
+  defp upload_error_to_string(:too_many_files), do: "Too many files"
+  defp upload_error_to_string(:not_accepted), do: "Unaccepted file type"
+  defp upload_error_to_string(other), do: "Upload error: #{inspect(other)}"
 end

@@ -38,7 +38,7 @@ defmodule BlogWeb.NoteLive do
             >
               <img
                 phx-track-static
-                src={~p"/images/#{@image_path}"}
+                src={"/images/" <> @image_path}
                 alt={@title}
                 width="980"
                 height="288"

@@ -91,7 +91,7 @@ defmodule BlogWeb.PageController do
                   <div class="aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-700">
                     <img
                       phx-track-static
-                      src={n.image_path && ~p"/images/#{n.image_path}"}
+                      src={n.image_path && ("/images/" <> n.image_path)}
                       alt={n.title}
                       width="400"
                       height="300"
