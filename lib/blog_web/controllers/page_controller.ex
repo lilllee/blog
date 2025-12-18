@@ -85,7 +85,7 @@ defmodule BlogWeb.PageController do
           </div>
 
           <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-            <%= for n <- @notes do %>
+            <%= for {n, index} <- Enum.with_index(@notes) do %>
               <.link navigate={~p"/posts/#{n.slug}"}>
                 <article class="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
                   <div class="aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-700">
@@ -95,7 +95,8 @@ defmodule BlogWeb.PageController do
                       alt={n.title}
                       width="400"
                       height="300"
-                      loading="lazy"
+                      loading={if index < 3, do: "eager", else: "lazy"}
+                      fetchpriority={if index == 0, do: "high", else: "auto"}
                       decoding="async"
                       class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                     />
@@ -150,6 +151,14 @@ defmodule BlogWeb.PageController do
     notes = NoteData.list_notes()
     seo = SEO.seo_assigns(:blog, notes)
 
+    # Get first post image for LCP preload
+    first_note = List.first(notes)
+    lcp_image = if first_note && first_note.image_path do
+      "/images/#{first_note.image_path}"
+    else
+      nil
+    end
+
     {:ok,
      socket
      |> assign(seo)
@@ -159,7 +168,8 @@ defmodule BlogWeb.PageController do
        query: "",
        active_tag: "",
        notes: decorate_notes(notes),
-       available_tags: NoteData.list_tags()
+       available_tags: NoteData.list_tags(),
+       lcp_image: lcp_image
      )}
   end
 

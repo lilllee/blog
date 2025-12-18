@@ -33,14 +33,68 @@ defmodule BlogWeb.FeedController do
     base = BlogWeb.Endpoint.url()
 
     content = """
-    User-agent: *
-    Allow: /
+    # robots.txt for #{base}
+    # Updated: #{Date.utc_today() |> Date.to_iso8601()}
 
+    # Block all crawlers from admin area
+    User-agent: *
+    Disallow: /admin/
+    Disallow: /admin
+    Disallow: /dev/
+
+    # Block crawlers from LiveView internal routes
+    Disallow: /live/
+    Disallow: /phoenix/
+
+    # Block search-specific paths (if they exist)
+    Disallow: /*?query=
+    Disallow: /*?search=
+    Disallow: /*&query=
+    Disallow: /*&search=
+
+    # Allow specific public paths
+    Allow: /
+    Allow: /posts/
+    Allow: /list
+    Allow: /about
+    Allow: /images/
+    Allow: /assets/
+
+    # Allow old URLs for redirect crawling
+    Allow: /item/
+
+    # Crawl-delay to be respectful (optional)
+    # Crawl-delay: 1
+
+    # Sitemap location
     Sitemap: #{base}/sitemap.xml
+
+    # Block bad bots (aggressive crawlers)
+    User-agent: AhrefsBot
+    Disallow: /
+
+    User-agent: SemrushBot
+    Disallow: /
+
+    User-agent: DotBot
+    Disallow: /
+
+    User-agent: MJ12bot
+    Disallow: /
+
+    # Allow good bots explicitly (redundant but clear)
+    User-agent: Googlebot
+    Allow: /
+    Disallow: /admin/
+
+    User-agent: Bingbot
+    Allow: /
+    Disallow: /admin/
     """
 
     conn
     |> put_resp_content_type("text/plain; charset=utf-8")
+    |> put_resp_header("cache-control", "public, max-age=3600")
     |> send_resp(200, content)
   end
 

@@ -8,9 +8,11 @@
     <%= if System.get_env("GOOGLE_SITE_VERIFICATION") do %>
       <meta name="google-site-verification" content={System.get_env("GOOGLE_SITE_VERIFICATION")} />
     <% end %>
-    <%!-- Resource Hints for Performance --%>
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
-    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
+    <%!-- Preload LCP image for faster load --%>
+    <%= if assigns[:lcp_image] do %>
+      <link rel="preload" as="image" href={@lcp_image} fetchpriority="high" />
+    <% end %>
+    <%!-- Resource Hints for Performance - Only GA4 now (no CDN CSS) --%>
     <%= if System.get_env("GA4_MEASUREMENT_ID") do %>
       <link rel="preconnect" href="https://www.googletagmanager.com" />
       <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
@@ -80,30 +82,28 @@
     <% end %>
 
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-    <%!-- Preload critical fonts if using custom fonts --%>
-    <%!-- <link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossorigin /> --%>
-    <%!-- Syntax highlighting CSS - load with media query to reduce initial payload --%>
+    <%!-- Self-hosted vendor CSS (no render blocking!) --%>
     <link
+      phx-track-static
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
+      href={~p"/vendor/css/highlight-light.min.css"}
       media="(prefers-color-scheme: light)"
     />
     <link
+      phx-track-static
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css"
+      href={~p"/vendor/css/highlight-dark.min.css"}
       media="(prefers-color-scheme: dark)"
     />
     <link
+      phx-track-static
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.7.0/github-markdown-light.css"
+      href={~p"/vendor/css/markdown.min.css"}
       media="print"
       onload="this.media='all'"
     />
     <noscript>
-      <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.7.0/github-markdown-light.css"
-      />
+      <link phx-track-static rel="stylesheet" href={~p"/vendor/css/markdown.min.css"} />
     </noscript>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js">
     </script>
