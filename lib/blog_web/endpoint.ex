@@ -15,6 +15,11 @@ defmodule BlogWeb.Endpoint do
     websocket: [connect_info: [session: @session_options]],
     longpoll: [connect_info: [session: @session_options]]
 
+  plug RemoteIp, headers: ["fly-client-ip"]
+  plug Plug.RequestId
+  plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
+  plug :redirect_root_domain
+
   # Serve at "/" the static files from "priv/static" directory.
   #
   # You should set gzip to true if you are running phx.digest
@@ -37,9 +42,6 @@ defmodule BlogWeb.Endpoint do
     param_key: "request_logger",
     cookie_key: "request_logger"
 
-  plug Plug.RequestId
-  plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
-
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
     pass: ["*/*"],
@@ -50,6 +52,23 @@ defmodule BlogWeb.Endpoint do
   plug Plug.Session, @session_options
   plug BlogWeb.Router
 
-  # Define a plug that will be called for all requests
-  plug RemoteIp, headers: ["fly-client-ip"]
+  defp redirect_root_domain(%Plug.Conn{host: "junho.me"} = conn, _opts) do
+    location = redirect_location(conn, "https://blog.junho.me")
+
+    conn
+    |> Plug.Conn.put_resp_header("location", location)
+    |> Plug.Conn.send_resp(301, "")
+    |> Plug.Conn.halt()
+  end
+
+  defp redirect_root_domain(conn, _opts), do: conn
+
+  defp redirect_location(conn, base) do
+    path = conn.request_path || "/"
+
+    case conn.query_string do
+      "" -> base <> path
+      qs -> base <> path <> "?" <> qs
+    end
+  end
 end
