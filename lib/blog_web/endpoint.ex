@@ -27,8 +27,12 @@ defmodule BlogWeb.Endpoint do
   plug Plug.Static,
     at: "/",
     from: :blog,
-    gzip: false,
-    only: ~w(assets fonts images favicon.ico robots.txt)
+    gzip: true,
+    only: ~w(assets fonts images favicon.ico robots.txt),
+    cache_control_for_etags: "public, max-age=31536000, immutable",
+    headers: [
+      {"cache-control", "public, max-age=31536000, immutable"}
+    ]
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.

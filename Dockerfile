@@ -13,7 +13,10 @@
 #
 ARG ELIXIR_VERSION=1.17.2
 ARG OTP_VERSION=27.0.1
-ARG DEBIAN_VERSION=bullseye-20251208-slim
+# Use the same Debian release for builder + runner so Erlang's crypto NIF
+# links against the same OpenSSL ABI at build and run time.
+# (exqlite also benefits from newer glibc on bookworm.)
+ARG DEBIAN_VERSION=bookworm-20251208-slim
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
@@ -21,7 +24,7 @@ ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 FROM ${BUILDER_IMAGE} as builder
 
 # install build dependencies
-RUN apt-get update -y && apt-get install -y build-essential wget git \
+RUN apt-get update -y && apt-get install -y build-essential wget git nodejs npm \
     && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # Install litestream
@@ -38,6 +41,10 @@ RUN mix local.hex --force && \
 
 # set build ENV
 ENV MIX_ENV="prod"
+
+# Install JS dependencies (for Tailwind plugins like Flowbite).
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
 
 # install mix dependencies
 COPY mix.exs mix.lock ./
@@ -73,7 +80,7 @@ RUN mix release
 FROM ${RUNNER_IMAGE}
 
 RUN apt-get update -y && \
-  apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates \
+  apt-get install -y libstdc++6 openssl libncurses6 locales ca-certificates \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # Set the locale
@@ -105,6 +112,6 @@ USER nobody
 # ENTRYPOINT ["/tini", "--"]
 
 # Run litestream script as entrypoint
-ENTRYPOINT ["/bin/bash", "/app/bin/litestream.sh"]
+ENTRYPOINT ["/bin/sh", "/app/bin/litestream.sh"]
 
 CMD ["/app/bin/server"]

@@ -92,7 +92,11 @@ defmodule BlogWeb.PageController do
                     <img
                       phx-track-static
                       src={n.image_path && ~p"/images/#{n.image_path}"}
-                      alt=""
+                      alt={n.title}
+                      width="400"
+                      height="300"
+                      loading="lazy"
+                      decoding="async"
                       class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                     />
                   </div>

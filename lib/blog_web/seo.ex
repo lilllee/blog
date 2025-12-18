@@ -48,12 +48,14 @@ defmodule BlogWeb.SEO do
       |> String.replace(~r/\s+/, " ")
       |> String.slice(0, 160)
 
+    og_image = BlogWeb.OGImage.get_image_url(:post, note)
+
     meta = %{
       title: note.title,
       description: description,
       url: url,
       type: "article",
-      image: image_url(note.image_path, base_url),
+      image: og_image,
       published_time: iso8601_date(note.published_at || note.inserted_at),
       modified_time: iso8601_date(note.updated_at),
       author: "Your Name"

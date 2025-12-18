@@ -6,7 +6,9 @@
       "Bash(mix ecto.migrate:*)",
       "Bash(mix compile:*)",
       "Bash(mix run:*)",
-      "Bash(mix ecto.gen.migration:*)"
+      "Bash(mix ecto.gen.migration:*)",
+      "Bash(cat:*)",
+      "Bash(chmod:*)"
     ]
   }
 }

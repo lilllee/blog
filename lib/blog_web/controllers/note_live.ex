@@ -39,7 +39,12 @@ defmodule BlogWeb.NoteLive do
               <img
                 phx-track-static
                 src={~p"/images/#{@image_path}"}
-                alt=""
+                alt={@title}
+                width="980"
+                height="288"
+                loading="eager"
+                fetchpriority="high"
+                decoding="async"
                 class="h-72 w-full object-cover"
               />
             </div>
