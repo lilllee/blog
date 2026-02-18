@@ -169,19 +169,11 @@
   font-weight: 600;
 }
 
-/* Custom utility overrides - Tailwind purge bypass */
-.hover\:bg-muted:hover {
-  background-color: var(--muted);
+/* Custom utilities */
+.card-hover:hover {
+  background-color: #efefef;
 }
 
-.divide-border > :not([hidden]) ~ :not([hidden]) {
-  border-color: var(--border);
-}
-
-.tracking-wider {
-  letter-spacing: 0.05em;
-}
-
-.min-h-\[20px\] {
-  min-height: 20px;
+.dark .card-hover:hover {
+  background-color: #1a1a1a;
 }

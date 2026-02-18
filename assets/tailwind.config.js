@@ -10,9 +10,22 @@ module.exports = {
     "../lib/blog_web/**/*.*ex"
   ],
   safelist: [
-    'hover:bg-muted',
     'tracking-wider',
     'min-h-[20px]',
+    // Skill category colors
+    'text-blue-400', 'bg-blue-500/10', 'border-blue-500/20',
+    'text-yellow-400', 'bg-yellow-500/10', 'border-yellow-500/20',
+    'text-purple-400', 'bg-purple-500/10', 'border-purple-500/20',
+    'text-green-400', 'bg-green-500/10', 'border-green-500/20',
+    'text-orange-400', 'bg-orange-500/10', 'border-orange-500/20',
+    'text-red-400', 'bg-red-500/10', 'border-red-500/20',
+    'text-gray-400', 'bg-gray-500/10', 'border-gray-500/20',
+    // Experience/education timeline
+    'border-blue-500/30', 'border-blue-500',
+    // Header gradient and badges
+    'border-green-500/20', 'bg-green-500/10', 'text-green-400',
+    // Secondary bg
+    'bg-secondary/20', 'bg-secondary/30', 'bg-secondary/40',
   ],
   theme: {
     extend: {

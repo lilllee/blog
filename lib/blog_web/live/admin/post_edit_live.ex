@@ -79,14 +79,14 @@ defmodule BlogWeb.Admin.PostEditLive do
     <div class="px-6 py-6 space-y-6">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-xs uppercase tracking-wide text-gray-500">Admin</p>
-          
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= @page_title %></h1>
+          <p class="text-xs uppercase tracking-wide text-muted-foreground">Admin</p>
+
+          <h1 class="text-2xl font-bold text-foreground"><%= @page_title %></h1>
         </div>
         
         <.link
           navigate={~p"/admin/posts"}
-          class="text-sm font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-300"
+          class="text-sm font-semibold text-muted-foreground hover:text-foreground"
         >
           ← Back to posts
         </.link>
@@ -103,21 +103,21 @@ defmodule BlogWeb.Admin.PostEditLive do
       >
         <.input field={f[:title]} label="Title" />
         <div class="space-y-2">
-          <label class="block text-sm font-semibold leading-6 text-zinc-800">
+          <label class="block text-sm font-semibold leading-6 text-foreground">
             Cover image upload
           </label>
           <.live_file_input upload={@uploads.image} class="block w-full text-sm" />
-          <p class="text-xs text-gray-500">
+          <p class="text-xs text-muted-foreground">
             Saves to <code>priv/static/images/uploads</code> and stores <code>uploads/&lt;filename&gt;</code> in
             <code>image_path</code>.
           </p>
           <%= for entry <- @uploads.image.entries do %>
             <div class="flex items-center gap-3">
-              <div class="h-14 w-20 overflow-hidden rounded-md border border-gray-200 bg-gray-50">
+              <div class="h-14 w-20 overflow-hidden rounded-md border border-border bg-muted">
                 <.live_img_preview entry={entry} class="h-full w-full object-cover" />
               </div>
               <div class="flex-1">
-                <p class="text-xs text-gray-600"><%= entry.client_name %></p>
+                <p class="text-xs text-muted-foreground"><%= entry.client_name %></p>
                 <progress class="w-full" value={entry.progress} max="100"><%= entry.progress %>%</progress>
                 <%= for err <- upload_errors(@uploads.image, entry) do %>
                   <p class="text-xs text-rose-600"><%= upload_error_to_string(err) %></p>

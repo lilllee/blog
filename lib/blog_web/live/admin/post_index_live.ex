@@ -28,42 +28,42 @@ defmodule BlogWeb.Admin.PostIndexLive do
     <div class="px-6 py-6 space-y-6">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-xs uppercase tracking-wide text-gray-500">Admin</p>
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Posts</h1>
+          <p class="text-xs uppercase tracking-wide text-muted-foreground">Admin</p>
+          <h1 class="text-2xl font-bold text-foreground">Posts</h1>
         </div>
         <.link
           navigate={~p"/admin/posts/new"}
-          class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
+          class="rounded-lg bg-foreground px-4 py-2 text-sm font-semibold text-background hover:bg-foreground/90"
         >
           New post
         </.link>
       </div>
 
-      <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800 text-sm">
-          <thead class="bg-gray-50 dark:bg-gray-800">
+      <div class="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
+        <table class="min-w-full divide-y divide-border text-sm">
+          <thead class="bg-muted">
             <tr>
-              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">
+              <th class="px-4 py-3 text-left font-semibold text-muted-foreground">
                 Title
               </th>
-              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">
+              <th class="px-4 py-3 text-left font-semibold text-muted-foreground">
                 Status
               </th>
-              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">
+              <th class="px-4 py-3 text-left font-semibold text-muted-foreground">
                 Published
               </th>
-              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">Tags</th>
-              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">
+              <th class="px-4 py-3 text-left font-semibold text-muted-foreground">Tags</th>
+              <th class="px-4 py-3 text-left font-semibold text-muted-foreground">
                 Series
               </th>
-              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200"></th>
+              <th class="px-4 py-3 text-left font-semibold text-muted-foreground"></th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-            <tr :for={post <- @posts} class="hover:bg-gray-50 dark:hover:bg-gray-800/60">
+          <tbody class="divide-y divide-border">
+            <tr :for={post <- @posts} class="card-hover">
               <td class="px-4 py-3">
-                <div class="font-semibold text-gray-900 dark:text-gray-100"><%= post.title %></div>
-                <div class="text-xs text-gray-500 line-clamp-1 dark:text-gray-400">
+                <div class="font-semibold text-foreground"><%= post.title %></div>
+                <div class="text-xs text-muted-foreground line-clamp-1">
                   <%= excerpt(post.raw_markdown || post.content) %>
                 </div>
               </td>
@@ -76,22 +76,22 @@ defmodule BlogWeb.Admin.PostIndexLive do
                   <%= String.capitalize(post.status) %>
                 </span>
               </td>
-              <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
+              <td class="px-4 py-3 text-foreground">
                 <%= format_date(post.published_at || post.inserted_at) %>
               </td>
-              <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
+              <td class="px-4 py-3 text-foreground">
                 <div class="flex flex-wrap gap-1">
                   <span
                     :for={tag <- Markdown.tag_list(post.tags)}
-                    class="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    class="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground"
                   >
                     <%= tag %>
                   </span>
                 </div>
               </td>
-              <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
+              <td class="px-4 py-3 text-foreground">
                 <%= if post.series_id do %>
-                  <span class="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                  <span class="font-mono text-xs bg-muted px-2 py-1 rounded">
                     <%= post.series_id %> (#<%= post.series_order || 0 %>)
                   </span>
                 <% end %>
@@ -99,7 +99,7 @@ defmodule BlogWeb.Admin.PostIndexLive do
               <td class="px-4 py-3 text-right space-x-2">
                 <.link
                   navigate={~p"/admin/posts/#{post.id}/edit"}
-                  class="text-indigo-600 text-sm font-semibold hover:text-indigo-500"
+                  class="text-foreground text-sm font-semibold underline hover:text-foreground/80"
                 >
                   Edit
                 </.link>
@@ -107,7 +107,7 @@ defmodule BlogWeb.Admin.PostIndexLive do
                   phx-click="set_status"
                   phx-value-id={post.id}
                   phx-value-status={toggle_target(post.status)}
-                  class="text-sm font-semibold text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white"
+                  class="text-sm font-semibold text-muted-foreground hover:text-foreground"
                 >
                   <%= if post.status == "published", do: "Unpublish", else: "Publish" %>
                 </button>

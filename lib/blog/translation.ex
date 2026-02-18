@@ -35,7 +35,16 @@ defmodule Blog.Translation do
       "back_to_list" => "목록으로",
       "series_nav" => "시리즈 탐색",
       "related_posts" => "관련 글",
-      "not_found" => "해당 글을 찾을 수 없습니다."
+      "not_found" => "해당 글을 찾을 수 없습니다.",
+      "skills" => "기술",
+      "experience" => "경력",
+      "projects" => "프로젝트",
+      "education" => "학력",
+      "certifications" => "자격증",
+      "spoken_languages" => "언어",
+      "interests" => "관심 분야",
+      "present" => "현재",
+      "currently_employed" => "재직 중"
     },
     "en" => %{
       "blog" => "Blog",
@@ -56,7 +65,16 @@ defmodule Blog.Translation do
       "back_to_list" => "Back to list",
       "series_nav" => "Series Navigation",
       "related_posts" => "Related Posts",
-      "not_found" => "Post not found."
+      "not_found" => "Post not found.",
+      "skills" => "Skills",
+      "experience" => "Experience",
+      "projects" => "Projects",
+      "education" => "Education",
+      "certifications" => "Certifications",
+      "spoken_languages" => "Languages",
+      "interests" => "Interests",
+      "present" => "Present",
+      "currently_employed" => "Currently Employed"
     },
     "ja" => %{
       "blog" => "ブログ",
@@ -77,7 +95,16 @@ defmodule Blog.Translation do
       "back_to_list" => "一覧に戻る",
       "series_nav" => "シリーズナビ",
       "related_posts" => "関連記事",
-      "not_found" => "記事が見つかりません。"
+      "not_found" => "記事が見つかりません。",
+      "skills" => "スキル",
+      "experience" => "経歴",
+      "projects" => "プロジェクト",
+      "education" => "学歴",
+      "certifications" => "資格",
+      "spoken_languages" => "言語",
+      "interests" => "趣味・関心",
+      "present" => "現在",
+      "currently_employed" => "在職中"
     },
     "zh" => %{
       "blog" => "博客",
@@ -98,7 +125,16 @@ defmodule Blog.Translation do
       "back_to_list" => "返回列表",
       "series_nav" => "系列导航",
       "related_posts" => "相关文章",
-      "not_found" => "未找到该文章。"
+      "not_found" => "未找到该文章。",
+      "skills" => "技能",
+      "experience" => "工作经历",
+      "projects" => "项目",
+      "education" => "教育背景",
+      "certifications" => "资格证书",
+      "spoken_languages" => "语言能力",
+      "interests" => "兴趣爱好",
+      "present" => "至今",
+      "currently_employed" => "在职中"
     }
   }
 

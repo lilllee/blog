@@ -74,29 +74,29 @@ defmodule BlogWeb.Admin.AboutEditLive do
     <div class="px-6 py-6 space-y-6">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-xs uppercase tracking-wide text-gray-500">Admin</p>
-          
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Edit About Page</h1>
+          <p class="text-xs uppercase tracking-wide text-muted-foreground">Admin</p>
+
+          <h1 class="text-2xl font-bold text-foreground">Edit About Page</h1>
         </div>
         
         <div class="flex gap-3">
           <.link
             navigate={~p"/about"}
-            class="text-sm font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-300"
+            class="text-sm font-semibold text-muted-foreground hover:text-foreground"
           >
             View public page
           </.link>
-          
+
           <.link
             navigate={~p"/admin/posts"}
-            class="text-sm font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-300"
+            class="text-sm font-semibold text-muted-foreground hover:text-foreground"
           >
             Back to posts
           </.link>
         </div>
       </div>
       <!-- Section Tabs -->
-      <div class="border-b border-gray-200 dark:border-gray-800">
+      <div class="border-b border-border">
         <nav class="-mb-px flex space-x-8">
           <.section_tab section="header" active={@active_section} label="Header" />
           <.section_tab section="summary" active={@active_section} label="Summary" />
@@ -109,7 +109,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
       </div>
       <!-- Form -->
       <.form for={%{}} phx-change="validate" phx-submit="save" class="space-y-6">
-        <div class="bg-white dark:bg-gray-900 rounded-lg p-6 border border-gray-200 dark:border-gray-800">
+        <div class="bg-card rounded-lg p-6 border border-border">
           <%= case @active_section do %>
             <% "header" -> %>
               <.header_section resume_data={@resume_data} />
@@ -145,9 +145,9 @@ defmodule BlogWeb.Admin.AboutEditLive do
       class={[
         "border-b-2 py-2 px-1 text-sm font-medium",
         @section == @active &&
-          "border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400",
+          "border-foreground text-foreground",
         @section != @active &&
-          "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+          "border-transparent text-muted-foreground hover:border-border hover:text-foreground"
       ]}
     >
       <%= @label %>
@@ -160,7 +160,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
 
     ~H"""
     <div class="space-y-4">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Contact Information</h3>
+      <h3 class="text-lg font-semibold text-foreground">Contact Information</h3>
        <.input type="text" name="resume[header][name]" label="Name" value={header["name"]} />
       <.input
         type="text"
@@ -198,9 +198,9 @@ defmodule BlogWeb.Admin.AboutEditLive do
 
     ~H"""
     <div class="space-y-4">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Professional Summary</h3>
+      <h3 class="text-lg font-semibold text-foreground">Professional Summary</h3>
       
-      <p class="text-sm text-gray-600 dark:text-gray-400">
+      <p class="text-sm text-muted-foreground">
         Write a brief professional summary using Markdown formatting.
       </p>
       
@@ -220,11 +220,11 @@ defmodule BlogWeb.Admin.AboutEditLive do
 
     ~H"""
     <div class="space-y-4">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Skills</h3>
+      <h3 class="text-lg font-semibold text-foreground">Skills</h3>
       
-      <p class="text-sm text-gray-600 dark:text-gray-400">
+      <p class="text-sm text-muted-foreground">
         Edit as JSON array. Format:
-        <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">
+        <code class="bg-muted px-1 rounded">
           [{"category": "Languages", "items": ["Elixir", "Python"]}]
         </code>
       </p>
@@ -245,11 +245,11 @@ defmodule BlogWeb.Admin.AboutEditLive do
 
     ~H"""
     <div class="space-y-4">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Work Experience</h3>
+      <h3 class="text-lg font-semibold text-foreground">Work Experience</h3>
       
-      <p class="text-sm text-gray-600 dark:text-gray-400">
+      <p class="text-sm text-muted-foreground">
         Edit as JSON array. Format:
-        <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded text-xs">
+        <code class="bg-muted px-1 rounded text-xs">
           [{"company": "...", "position": "...", "start_date": "...", "end_date": "...", "description_md": "...", "location": "..."}]
         </code>
       </p>
@@ -270,11 +270,11 @@ defmodule BlogWeb.Admin.AboutEditLive do
 
     ~H"""
     <div class="space-y-4">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Projects</h3>
+      <h3 class="text-lg font-semibold text-foreground">Projects</h3>
       
-      <p class="text-sm text-gray-600 dark:text-gray-400">
+      <p class="text-sm text-muted-foreground">
         Edit as JSON array. Format:
-        <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded text-xs">
+        <code class="bg-muted px-1 rounded text-xs">
           [{"name": "...", "url": "...", "description_md": "...", "tech_stack": ["...", "..."]}]
         </code>
       </p>
@@ -295,11 +295,11 @@ defmodule BlogWeb.Admin.AboutEditLive do
 
     ~H"""
     <div class="space-y-4">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Education</h3>
+      <h3 class="text-lg font-semibold text-foreground">Education</h3>
       
-      <p class="text-sm text-gray-600 dark:text-gray-400">
+      <p class="text-sm text-muted-foreground">
         Edit as JSON array. Format:
-        <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded text-xs">
+        <code class="bg-muted px-1 rounded text-xs">
           [{"school": "...", "degree": "...", "field": "...", "start_date": "...", "end_date": "...", "description_md": "..."}]
         </code>
       </p>
@@ -323,10 +323,10 @@ defmodule BlogWeb.Admin.AboutEditLive do
 
     ~H"""
     <div class="space-y-6">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Additional Information</h3>
+      <h3 class="text-lg font-semibold text-foreground">Additional Information</h3>
       
       <div>
-        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+        <p class="text-sm text-muted-foreground mb-2">
           Certifications (JSON array of strings)
         </p>
         
@@ -340,7 +340,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
       </div>
       
       <div>
-        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+        <p class="text-sm text-muted-foreground mb-2">
           Languages (JSON array of strings)
         </p>
         
@@ -354,7 +354,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
       </div>
       
       <div>
-        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+        <p class="text-sm text-muted-foreground mb-2">
           Interests (JSON array of strings)
         </p>
         

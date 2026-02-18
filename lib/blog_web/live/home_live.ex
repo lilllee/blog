@@ -61,9 +61,9 @@ defmodule BlogWeb.HomeLive do
       </section>
 
       <%!-- Post list --%>
-      <div class="mt-6 divide-y divide-border">
-        <article :for={post <- @posts} class="group py-6 first:pt-0">
-          <.link navigate={~p"/posts/#{post.slug}"} class="block -mx-3 px-3 py-1 rounded-lg transition-colors hover:bg-muted">
+      <div class="mt-6">
+        <article :for={post <- @posts} class="group">
+          <.link navigate={~p"/posts/#{post.slug}"} class="block -mx-3 px-3 py-6 rounded-lg transition-colors card-hover border-b border-border last:border-b-0">
             <div class="flex gap-4">
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2.5 min-h-[20px]">
