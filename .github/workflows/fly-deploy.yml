@@ -12,9 +12,39 @@ jobs:
     name: Deploy app
     runs-on: ubuntu-latest
     concurrency: deploy-group
+    env:
+      FLY_APP: blog-little-glitter-5560
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only
+      - name: Build and push image
+        run: |
+          set -euo pipefail
+          LABEL="gha-${GITHUB_SHA::12}"
+          echo "IMAGE_LABEL=$LABEL" >> "$GITHUB_ENV"
+          flyctl deploy -a "$FLY_APP" --build-only --push --image-label "$LABEL"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      - name: Update existing machine in place
+        run: |
+          set -euo pipefail
+          IMAGE="registry.fly.io/${FLY_APP}:${IMAGE_LABEL}"
+          MACHINE_ID="$(flyctl machine list -a "$FLY_APP" -j | jq -r '
+            map(select((.state | ascii_downcase) == "started" or (.state | ascii_downcase) == "stopped" or (.state | ascii_downcase) == "suspended"))
+            | sort_by(.updated_at // .created_at)
+            | last
+            | .id // empty
+          ')"
+
+          if [ -z "$MACHINE_ID" ]; then
+            echo "No started/stopped/suspended machine found on ${FLY_APP}" >&2
+            echo "Current machines:" >&2
+            flyctl machine list -a "$FLY_APP" >&2
+            exit 1
+          fi
+
+          echo "Updating machine: $MACHINE_ID"
+          flyctl machine update "$MACHINE_ID" -a "$FLY_APP" -i "$IMAGE" --yes --wait-timeout 600
+          flyctl machine list -a "$FLY_APP"
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
