@@ -7,7 +7,16 @@ defmodule BlogWeb.Router do
     plug :fetch_live_flash
     plug :put_root_layout, html: {BlogWeb.Layouts, :root}
     plug :protect_from_forgery
-    plug :put_secure_browser_headers
+    plug :put_secure_browser_headers, %{
+      "content-security-policy" =>
+        "default-src 'self'; " <>
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " <>
+        "style-src 'self' 'unsafe-inline'; " <>
+        "img-src 'self' data: https:; " <>
+        "connect-src 'self' wss:; " <>
+        "font-src 'self'; " <>
+        "media-src 'self'"
+    }
     plug BlogWeb.LocalePlug
   end
 

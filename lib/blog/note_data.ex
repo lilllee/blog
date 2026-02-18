@@ -141,7 +141,7 @@ defmodule Blog.NoteData do
 
     matcher =
       Enum.reduce(tags, dynamic(false), fn tag, dyn ->
-        dynamic([n], ^dyn or like(n.tags, ^"%#{tag}%"))
+        dynamic([n], ^dyn or like(n.tags, ^"%#{escape_like(tag)}%"))
       end)
 
     Note
@@ -213,7 +213,8 @@ defmodule Blog.NoteData do
   defp maybe_filter_tag(query, ""), do: query
 
   defp maybe_filter_tag(query, tag) do
-    where(query, [note], like(note.tags, ^"%#{tag}%"))
+    escaped = escape_like(tag)
+    where(query, [note], like(note.tags, ^"%#{escaped}%"))
   end
 
   defp published_base(query) do
@@ -235,10 +236,24 @@ defmodule Blog.NoteData do
     order_by(query, [n], desc: fragment("COALESCE(?, ?)", n.published_at, n.inserted_at))
   end
 
+  defp escape_like(term) do
+    term
+    |> String.replace("\\", "\\\\")
+    |> String.replace("%", "\\%")
+    |> String.replace("_", "\\_")
+  end
+
   defp maybe_search(query, ""), do: query
 
   defp maybe_search(query, text) do
-    sanitized = text |> String.replace(~r/["']/u, " ") |> String.trim()
+    sanitized =
+      text
+      |> String.replace(~r/[\"'()*^:+\-~]/u, " ")
+      |> String.replace(~r/\b(AND|OR|NOT|NEAR)\b/i, " ")
+      |> String.split()
+      |> Enum.reject(&(&1 == ""))
+      |> Enum.join(" ")
+      |> String.trim()
 
     case sanitized do
       "" ->

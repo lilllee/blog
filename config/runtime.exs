@@ -55,7 +55,7 @@ if config_env() == :prod do
 
   config :blog, BlogWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
-    force_ssl: [rewrite_on: [:x_forwarded_proto]],
+    force_ssl: [rewrite_on: [:x_forwarded_proto], hsts: true],
     http: [
       # Bind on all interfaces (required on Fly).
       # See https://hexdocs.pm/bandit/Bandit.html#t:options/0
