@@ -29,7 +29,6 @@ defmodule BlogWeb.Router do
       live "/about", AboutLive, :index
       live "/search", HomeLive, :search
       live "/list", HomeLive, :list
-      live "/music/manage", MusicManageLive, :index
     end
 
     # Feed routes
@@ -52,6 +51,14 @@ defmodule BlogWeb.Router do
     live "/posts/new", PostEditLive, :new
     live "/posts/:id/edit", PostEditLive, :edit
     live "/about", AboutEditLive, :edit
+  end
+
+  scope "/admin", BlogWeb do
+    pipe_through [:browser, :admin_auth]
+
+    live_session :admin_music, on_mount: [{BlogWeb.LocaleHook, :default}] do
+      live "/music/manage", MusicManageLive, :index
+    end
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

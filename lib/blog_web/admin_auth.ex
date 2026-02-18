@@ -6,8 +6,10 @@ defmodule BlogWeb.AdminAuth do
   def init(opts), do: opts
 
   def call(conn, _opts) do
-    username = System.get_env("BLOG_ADMIN_USER", "admin")
-    password = System.get_env("BLOG_ADMIN_PASS", "admin")
+    username = System.get_env("BLOG_ADMIN_USER") ||
+      raise "BLOG_ADMIN_USER environment variable is required"
+    password = System.get_env("BLOG_ADMIN_PASS") ||
+      raise "BLOG_ADMIN_PASS environment variable is required"
 
     case Plug.BasicAuth.parse_basic_auth(conn) do
       {^username, ^password} ->
