@@ -186,6 +186,30 @@ defmodule Blog.NoteData do
     %{prev: prev, next: next}
   end
 
+  def chronological_neighbors(%Note{} = note) do
+    published_at = note.published_at || note.inserted_at
+
+    prev =
+      Note
+      |> where([n], n.status == "published" and is_nil(n.deleted_at))
+      |> where([n], n.id != ^note.id)
+      |> where([n], coalesce(n.published_at, n.inserted_at) < ^published_at)
+      |> order_by([n], desc: coalesce(n.published_at, n.inserted_at))
+      |> limit(1)
+      |> Repo.one()
+
+    next =
+      Note
+      |> where([n], n.status == "published" and is_nil(n.deleted_at))
+      |> where([n], n.id != ^note.id)
+      |> where([n], coalesce(n.published_at, n.inserted_at) > ^published_at)
+      |> order_by([n], asc: coalesce(n.published_at, n.inserted_at))
+      |> limit(1)
+      |> Repo.one()
+
+    %{prev: prev, next: next}
+  end
+
   defp maybe_filter_tag(query, ""), do: query
 
   defp maybe_filter_tag(query, tag) do

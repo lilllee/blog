@@ -54,6 +54,16 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# Add missing MIME types for audio uploads.
+config :mime, :types, %{
+  "audio/mp4" => ["m4a"]
+}
+
+# Gemini API configuration for translation
+config :blog, Blog.Translation.GeminiClient,
+  api_key: System.get_env("GEMINI_API_KEY"),
+  model: "gemini-2.0-flash"
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

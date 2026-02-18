@@ -2,7 +2,9 @@ defmodule BlogWeb.Uploads do
   @moduledoc false
 
   @note_image_subdir Path.join(["static", "images", "uploads"])
+  @audio_subdir Path.join(["static", "uploads", "audio"])
   @allowed_exts ~w(.jpg .jpeg .png .gif .webp)
+  @allowed_audio_exts ~w(.mp3 .wav .m4a .ogg)
 
   def store_note_image!(%{path: temp_path}, %{client_name: client_name}) do
     ext = client_name |> Path.extname() |> String.downcase()
@@ -20,8 +22,30 @@ defmodule BlogWeb.Uploads do
     Path.join("uploads", filename)
   end
 
+  def store_audio_file!(%{path: temp_path}, %{client_name: client_name}) do
+    ext = client_name |> Path.extname() |> String.downcase()
+
+    if ext not in @allowed_audio_exts do
+      raise ArgumentError, "unsupported audio extension: #{inspect(ext)}"
+    end
+
+    filename = unique_filename(ext)
+    dest_dir = audio_dir!()
+    dest_path = Path.join(dest_dir, filename)
+
+    File.cp!(temp_path, dest_path)
+
+    Path.join(["uploads", "audio", filename])
+  end
+
   def note_images_dir! do
     dir = Path.join([priv_dir(), @note_image_subdir])
+    File.mkdir_p!(dir)
+    dir
+  end
+
+  def audio_dir! do
+    dir = Path.join([priv_dir(), @audio_subdir])
     File.mkdir_p!(dir)
     dir
   end
@@ -37,4 +61,3 @@ defmodule BlogWeb.Uploads do
     token <> ext
   end
 end
-

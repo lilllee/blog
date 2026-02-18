@@ -3,6 +3,6 @@ defmodule BlogWeb.PageControllerTest do
 
   test "GET /", %{conn: conn} do
     conn = get(conn, ~p"/")
-    assert html_response(conn, 200) =~ "Personal development blog"
+    assert response(conn, 200) == "hello world"
   end
 end

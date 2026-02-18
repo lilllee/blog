@@ -1,29 +1,56 @@
-// tailwind.config.js
 const plugin = require("tailwindcss/plugin")
 const fs = require("fs")
 const path = require("path")
 
 module.exports = {
+  darkMode: "class",
   content: [
     "./js/**/*.js",
     "../lib/blog_web.ex",
-    "../lib/blog_web/**/*.*ex",
-    "../node_modules/flowbite/**/*.js" // Flowbite 경로 추가
+    "../lib/blog_web/**/*.*ex"
+  ],
+  safelist: [
+    'hover:bg-muted',
+    'tracking-wider',
+    'min-h-[20px]',
   ],
   theme: {
     extend: {
       colors: {
-        brand: "#FD4F00",
-      }
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        card: "var(--card)",
+        muted: {
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
+        },
+        border: "var(--border)",
+        secondary: {
+          DEFAULT: "var(--secondary)",
+          foreground: "var(--secondary-foreground)",
+        },
+        accent: {
+          DEFAULT: "var(--accent)",
+          foreground: "var(--accent-foreground)",
+        },
+        primary: {
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)",
+        },
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+      },
+      borderColor: {
+        DEFAULT: "var(--border)",
+      },
     },
   },
   plugins: [
     require("@tailwindcss/forms"),
-    require('flowbite/plugin'), // Flowbite 플러그인 추가
-    plugin(({addVariant}) => addVariant("phx-click-loading", [".phx-click-loading&", ".phx-click-loading &"])),
-    plugin(({addVariant}) => addVariant("phx-submit-loading", [".phx-submit-loading&", ".phx-submit-loading &"])),
-    plugin(({addVariant}) => addVariant("phx-change-loading", [".phx-change-loading&", ".phx-change-loading &"])),
-    plugin(function({matchComponents, theme}) {
+    // Heroicons via CSS mask-image
+    plugin(function({ matchComponents, theme }) {
       let iconsDir = path.join(__dirname, "../deps/heroicons/optimized")
       let values = {}
       let icons = [
@@ -33,20 +60,18 @@ module.exports = {
         ["-micro", "/16/solid"]
       ]
       icons.forEach(([suffix, dir]) => {
-        fs.readdirSync(path.join(iconsDir, dir)).forEach(file => {
-          let name = path.basename(file, ".svg") + suffix
-          values[name] = {name, fullPath: path.join(iconsDir, dir, file)}
-        })
+        let fullDir = iconsDir + dir
+        if (fs.existsSync(fullDir)) {
+          fs.readdirSync(fullDir).forEach(file => {
+            let name = path.basename(file, ".svg") + suffix
+            values[name] = { name, fullPath: path.join(fullDir, file) }
+          })
+        }
       })
       matchComponents({
-        "hero": ({name, fullPath}) => {
+        "hero": ({ name, fullPath }) => {
           let content = fs.readFileSync(fullPath).toString().replace(/\r?\n|\r/g, "")
-          let size = theme("spacing.6")
-          if (name.endsWith("-mini")) {
-            size = theme("spacing.5")
-          } else if (name.endsWith("-micro")) {
-            size = theme("spacing.4")
-          }
+          let size = theme("fontSize.base") || "1.5rem"
           return {
             [`--hero-${name}`]: `url('data:image/svg+xml;utf8,${content}')`,
             "-webkit-mask": `var(--hero-${name})`,
@@ -56,10 +81,14 @@ module.exports = {
             "vertical-align": "middle",
             "display": "inline-block",
             "width": size,
-            "height": size
+            "height": size,
           }
         }
-      }, {values})
-    })
+      }, { values })
+    }),
+    // Phoenix-specific loading states
+    plugin(({addVariant}) => addVariant("phx-click-loading", [".phx-click-loading&", ".phx-click-loading &"])),
+    plugin(({addVariant}) => addVariant("phx-submit-loading", [".phx-submit-loading&", ".phx-submit-loading &"])),
+    plugin(({addVariant}) => addVariant("phx-change-loading", [".phx-change-loading&", ".phx-change-loading &"])),
   ]
 }

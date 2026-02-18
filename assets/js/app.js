@@ -21,10 +21,37 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
+import MusicPlayer from "./hooks/music_player"
+import AudioUploadMeta from "./hooks/audio_upload_meta"
 
 const RECENT_SEARCHES_KEY = "blog:recent_searches:v1"
 const RECENT_SEARCHES_MAX = 3
 let recentSearchStoreTimer = null
+
+// Theme toggle
+const initThemeToggle = () => {
+  const html = document.documentElement
+  document.querySelectorAll('#theme-toggle').forEach(btn => {
+    const newBtn = btn.cloneNode(true)
+    btn.parentNode.replaceChild(newBtn, btn)
+    newBtn.addEventListener('click', () => {
+      html.classList.toggle('dark')
+      localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light')
+    })
+  })
+}
+
+// Language dropdown handled via inline onclick in app.html.heex
+
+// Restore locale from localStorage
+const getStoredLocale = () => {
+  return localStorage.getItem('locale') || 'ko'
+}
+
+const setStoredLocale = (locale) => {
+  localStorage.setItem('locale', locale)
+  document.cookie = `locale=${locale};path=/;max-age=${365 * 24 * 60 * 60};SameSite=Lax`
+}
 
 const focusSearch = () => {
   const search = document.getElementById("search")
@@ -216,8 +243,7 @@ const RecentSearches = {
 
   updateActive(items) {
     items.forEach((el, idx) => {
-      el.classList.toggle("bg-indigo-50", idx === this.activeIndex)
-      el.classList.toggle("dark:bg-indigo-900/20", idx === this.activeIndex)
+      el.classList.toggle("bg-muted", idx === this.activeIndex)
     })
     const el = items[this.activeIndex]
     if (el) el.scrollIntoView({block: "nearest"})
@@ -279,9 +305,12 @@ const RecentSearches = {
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
-  hooks: {RecentSearches},
+  hooks: {RecentSearches, MusicPlayer, AudioUploadMeta},
   longPollFallbackMs: 2500,
-  params: {_csrf_token: csrfToken}
+  params: () => ({
+    _csrf_token: csrfToken,
+    locale: getStoredLocale()
+  })
 })
 
 document.addEventListener('keydown', function (event) {
@@ -294,16 +323,24 @@ document.addEventListener('keydown', function (event) {
 document.addEventListener("DOMContentLoaded", () => {
   enhanceCodeBlocks()
   scheduleStoreRecentSearchFromUrl()
+  initThemeToggle()
 })
 
 window.addEventListener("phx:page-loading-stop", () => {
   topbar.hide()
   enhanceCodeBlocks()
   scheduleStoreRecentSearchFromUrl()
+  initThemeToggle()
+})
+
+window.addEventListener("phx:locale-changed", (e) => {
+  if (e.detail && e.detail.locale) {
+    setStoredLocale(e.detail.locale)
+  }
 })
 
 // Show progress bar on live navigation and form submits
-topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
+topbar.config({barColors: {0: "#a0a0a0"}, shadowColor: "rgba(0, 0, 0, .3)"})
 window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
 
 // connect if there are any LiveViews on the page

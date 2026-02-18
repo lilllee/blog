@@ -20,6 +20,13 @@ if System.get_env("PHX_SERVER") do
   config :blog, BlogWeb.Endpoint, server: true
 end
 
+# Gemini API configuration for translation
+if gemini_api_key = System.get_env("GEMINI_API_KEY") do
+  config :blog, Blog.Translation.GeminiClient,
+    api_key: gemini_api_key,
+    model: System.get_env("GEMINI_MODEL") || "gemini-2.0-flash"
+end
+
 if config_env() == :prod do
   database_path =
     System.get_env("DATABASE_PATH") || "priv/repo/prod.db"

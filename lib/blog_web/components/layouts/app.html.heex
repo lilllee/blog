@@ -1,166 +1,133 @@
-<script
-  type="text/javascript"
-  src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
->
-</script>
-<div class="flex flex-col min-h-screen">
-  <!-- Main content -->
-  <div class="flex-1 w-full bg-white dark:bg-gray-900">
-    <header class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-4 flex justify-between items-center shadow-md fixed top-0 left-0 w-full z-50">
-      <nav class="bg-white dark:bg-gray-900 fixed w-full z-20 top-0 start-0 border-b border-gray-200 dark:border-gray-600">
-        <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-          <a href="/" class="flex items-center space-x-3 rtl:space-x-reverse">
-            <span class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
-              dev
-            </span>
-          </a>
-          <div class="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
-            <!-- 다크모드 토글 버튼 시작 -->
-            <button
-              id="theme-toggle"
-              type="button"
-              aria-pressed="false"
-              class="inline-flex items-center p-2 w-10 h-10 justify-center text-gray-500 dark:text-gray-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-600"
-            >
-              <span class="sr-only">Toggle Dark Mode</span>
-              <!-- 달 모양 아이콘 (Heroicons) -->
-              <svg
-                id="theme-toggle-dark-icon"
-                class="w-5 h-5 hidden"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M17.293 13.293a8 8 0 01-11.078-11.41 1 1 0 011.417 1.417 6 6 0 008.248 8.248 1 1 0 011.413-1.413l-.001.001z" />
-              </svg>
-              <!-- 해 모양 아이콘 -->
-              <svg
-                id="theme-toggle-light-icon"
-                class="w-5 h-5"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M10 3a1 1 0 010 2 5 5 0 100 10 1 1 0 010 2 7 7 0 010-14zm-8 7a8 8 0 1111.314 7.071 1 1 0 01-1.414-1.414A6 6 0 104 10a1 1 0 010-2zm14 0a1 1 0 010 2 8 8 0 01-8 8 .999.999 0 01-.99-.858 1 1 0 011.98-.142A6 6 0 0016 10a1 1 0 010-2z" />
-              </svg>
-            </button>
-            <!-- 다크모드 토글 버튼 끝 -->
-            <button
-              data-collapse-toggle="navbar-sticky"
-              type="button"
-              class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
-              aria-controls="navbar-sticky"
-              aria-expanded="false"
-            >
-              <span class="sr-only">Open main menu</span>
-              <svg
-                class="w-5 h-5"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 17 14"
-              >
-                <path
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M1 1h15M1 7h15M1 13h15"
-                />
-              </svg>
-            </button>
-          </div>
-          <div
-            class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1"
-            id="navbar-sticky"
+<header class="sticky top-0 z-50 border-b border-border bg-background backdrop-blur-none">
+  <div class="mx-auto flex max-w-2xl items-center justify-between px-6 py-4">
+    <nav class="flex items-center gap-6">
+      <.link navigate={~p"/"} class={[
+        "text-sm transition-colors hover:text-foreground",
+        if(assigns[:current_path] in ["/", nil], do: "font-semibold text-foreground", else: "font-normal text-muted-foreground")
+      ]}>
+        <%= Blog.Translation.t("blog", assigns[:locale] || "ko") %>
+      </.link>
+      <.link navigate={~p"/about"} class={[
+        "text-sm transition-colors hover:text-foreground",
+        if(assigns[:current_path] == "/about", do: "font-semibold text-foreground", else: "font-normal text-muted-foreground")
+      ]}>
+        <%= Blog.Translation.t("about", assigns[:locale] || "ko") %>
+      </.link>
+    </nav>
+    <div class="flex items-center gap-2">
+      <!-- Language selector -->
+      <div class="relative" id="lang-dropdown">
+        <button
+          id="lang-toggle"
+          type="button"
+          onclick="(function(e){e.stopPropagation();document.getElementById('lang-menu').classList.toggle('hidden')})(event)"
+          class="flex h-8 items-center gap-1 rounded-full border border-border px-2.5 text-xs text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+          aria-label="Change language"
+        >
+          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span id="current-lang-label"><%= Blog.Translation.get_language_name(assigns[:locale] || "ko") %></span>
+          <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        <div
+          id="lang-menu"
+          class="absolute right-0 top-full mt-1 hidden min-w-[120px] rounded-lg border border-border bg-background py-1 shadow-lg"
+        >
+          <button
+            phx-click="set_locale"
+            phx-value-locale="ko"
+            onclick="document.getElementById('lang-menu').classList.add('hidden');localStorage.setItem('locale','ko');document.cookie='locale=ko;path=/;max-age=31536000;SameSite=Lax'"
+            class={"w-full px-3 py-1.5 text-left text-sm transition-colors hover:bg-muted #{if (assigns[:locale] || "ko") == "ko", do: "font-medium text-foreground", else: "text-muted-foreground"}"}
           >
-            <ul class="flex flex-col p-4 md:p-0 mt-4 font-medium border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
-              <li>
-                <a
-                  href="/"
-                  class="block py-2 px-3 text-gray-900 dark:text-white rounded hover:bg-gray-100 dark:hover:bg-gray-700 md:hover:bg-transparent md:hover:text-blue-700 md:dark:hover:text-blue-500"
-                >
-                  Home
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/about"
-                  class="block py-2 px-3 text-gray-900 dark:text-white rounded hover:bg-gray-100 dark:hover:bg-gray-700 md:hover:bg-transparent md:hover:text-blue-700 md:dark:hover:text-blue-500"
-                >
-                  About Me
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </nav>
-    </header>
-
-    <main class="pt-24 px-4 py-20 sm:px-6 lg:px-8 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      <div class="mx-auto max-w-6xl">
-        <.flash_group flash={@flash} />
-        <%= @inner_content %>
-      </div>
-    </main>
-  </div>
-  <!-- Footer -->
-  <footer class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 py-6">
-    <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-col md:flex-row justify-between items-center">
-        <p class="text-sm">
-          &copy; <%= Date.utc_today().year %> junho lee. Developer portfolio blog.
-          <a href="/about" class="ml-2 underline underline-offset-4 hover:text-gray-900 dark:hover:text-gray-100">About</a>
-        </p>
-        <div class="mt-4 md:mt-0">
-          <a href="/privacy" class="text-sm hover:underline mr-4">Privacy Policy</a>
-          <a href="/terms" class="text-sm hover:underline">Terms of Service</a>
+            한국어
+          </button>
+          <button
+            phx-click="set_locale"
+            phx-value-locale="en"
+            onclick="document.getElementById('lang-menu').classList.add('hidden');localStorage.setItem('locale','en');document.cookie='locale=en;path=/;max-age=31536000;SameSite=Lax'"
+            class={"w-full px-3 py-1.5 text-left text-sm transition-colors hover:bg-muted #{if assigns[:locale] == "en", do: "font-medium text-foreground", else: "text-muted-foreground"}"}
+          >
+            English
+          </button>
+          <button
+            phx-click="set_locale"
+            phx-value-locale="ja"
+            onclick="document.getElementById('lang-menu').classList.add('hidden');localStorage.setItem('locale','ja');document.cookie='locale=ja;path=/;max-age=31536000;SameSite=Lax'"
+            class={"w-full px-3 py-1.5 text-left text-sm transition-colors hover:bg-muted #{if assigns[:locale] == "ja", do: "font-medium text-foreground", else: "text-muted-foreground"}"}
+          >
+            日本語
+          </button>
+          <button
+            phx-click="set_locale"
+            phx-value-locale="zh"
+            onclick="document.getElementById('lang-menu').classList.add('hidden');localStorage.setItem('locale','zh');document.cookie='locale=zh;path=/;max-age=31536000;SameSite=Lax'"
+            class={"w-full px-3 py-1.5 text-left text-sm transition-colors hover:bg-muted #{if assigns[:locale] == "zh", do: "font-medium text-foreground", else: "text-muted-foreground"}"}
+          >
+            中文
+          </button>
         </div>
       </div>
+      <!-- Theme toggle -->
+      <button
+        id="theme-toggle"
+        type="button"
+        class="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+        aria-label="Toggle dark mode"
+      >
+        <!-- Sun icon (shown in dark mode) -->
+        <svg class="hidden h-3.5 w-3.5 dark:block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <!-- Moon icon (shown in light mode) -->
+        <svg class="block h-3.5 w-3.5 dark:hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
     </div>
-  </footer>
-</div>
+  </div>
+</header>
+
+<main class="mx-auto max-w-2xl px-6 pt-8 pb-16">
+  <.flash_group flash={@flash} />
+  <%= @inner_content %>
+</main>
+
+<footer class="mx-auto max-w-2xl border-t border-border/50 px-6 py-8">
+  <p class="text-xs text-muted-foreground/50">
+    &copy; <%= DateTime.utc_now().year %> JunHo. <%= Blog.Translation.t("copyright", assigns[:locale] || "ko") %>
+  </p>
+</footer>
 
 <script>
-  function googleTranslateElementInit() {
-    new google.translate.TranslateElement({
-      pageLanguage: 'ko', // 원본 페이지의 언어 (한국어)
-      includedLanguages: 'en,ko,ja,ru,zh-CN,vi', // 선택 가능한 언어 목록
-      autoDisplay: false // 위젯의 기본 UI를 자동 표시하지 않음
-    }, 'google_translate_element');
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    const darkIcon = document.getElementById('theme-toggle-dark-icon');
-    const lightIcon = document.getElementById('theme-toggle-light-icon');
-    const html = document.documentElement;
-
-    function updateIcons() {
-      if (html.classList.contains('dark')) {
-        lightIcon.classList.remove('hidden');
-        darkIcon.classList.add('hidden');
-      } else {
-        lightIcon.classList.add('hidden');
-        darkIcon.classList.remove('hidden');
-      }
-
-      if (themeToggleBtn) {
-        themeToggleBtn.setAttribute('aria-pressed', html.classList.contains('dark') ? 'true' : 'false');
-        themeToggleBtn.title = html.classList.contains('dark') ? 'Switch to light mode' : 'Switch to dark mode';
-      }
-    }
-
-    // Apply initial theme: saved preference → system preference
-    const storedTheme = localStorage.getItem('theme');
-    const preferredTheme = storedTheme || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    html.classList.toggle('dark', preferredTheme === 'dark');
-
-    updateIcons();
-
-    themeToggleBtn.addEventListener('click', () => {
-      html.classList.toggle('dark');
-      updateIcons();
-      // 다크 모드 상태를 로컬 스토리지에 저장
-      localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
-    });
-  });
+document.addEventListener('click',function(e){
+  var d=document.getElementById('lang-dropdown');
+  var m=document.getElementById('lang-menu');
+  if(d&&m&&!d.contains(e.target))m.classList.add('hidden');
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){var m=document.getElementById('lang-menu');if(m)m.classList.add('hidden');}
+});
 </script>
+
+<%= if assigns[:music_tracks] do %>
+  <BlogWeb.MusicPlayerComponent.player
+    tracks={@music_tracks}
+    current_track={@music_current_track}
+    current_track_id={@music_current_track_id}
+    repeat_mode={@music_repeat_mode}
+    shuffle_enabled={@music_shuffle_enabled}
+  />
+<% end %>

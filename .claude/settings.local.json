@@ -8,7 +8,21 @@
       "Bash(mix run:*)",
       "Bash(mix ecto.gen.migration:*)",
       "Bash(cat:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(node -e:*)",
+      "Bash(npm install:*)",
+      "Bash(claude mcp add:*)",
+      "Bash(claude mcp list:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run:*)",
+      "mcp__plugin_oh-my-claudecode_t__lsp_diagnostics",
+      "Bash(ls:*)",
+      "Bash(mix assets.build:*)",
+      "Bash(curl:*)",
+      "Bash(mix assets.deploy:*)",
+      "Bash(node_modules/.bin/esbuild:*)",
+      "Bash(mix phx.digest.clean:*)",
+      "Bash(mix esbuild:*)"
     ]
   }
 }

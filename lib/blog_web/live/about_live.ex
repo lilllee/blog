@@ -53,95 +53,71 @@ defmodule BlogWeb.AboutLive do
   end
 
   @impl true
+  def handle_info({:locale_changed, _locale}, socket), do: {:noreply, socket}
+
+  @impl true
   def render(assigns) do
     ~H"""
-    <div class="px-4 pb-16 sm:px-8">
-      <div class="mb-6 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-        <.link navigate={~p"/"} class="hover:text-indigo-600">Home</.link> <span>/</span>
-        <span>About</span>
-      </div>
+    <div>
+      <%!-- Back link --%>
+      <.link navigate={~p"/"} class="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+          <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+        </svg>
+        <%= Blog.Translation.t("blog", @locale) %>
+      </.link>
 
-      <div class="max-w-4xl mx-auto space-y-12">
-        <!-- Header Section -->
-        <header class="text-center space-y-3">
-          <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100">
+      <div class="mt-10 space-y-12">
+        <%!-- Header Section --%>
+        <header class="space-y-3">
+          <h1 class="text-3xl font-bold tracking-tight text-foreground">
             <%= @header["name"] || "Your Name" %>
           </h1>
-
-          <p class="text-xl text-gray-600 dark:text-gray-300">
+          <p class="text-base text-muted-foreground">
             <%= @header["title"] || "Your Title" %>
           </p>
-
-          <div class="flex flex-wrap items-center justify-center gap-4 text-sm text-gray-600 dark:text-gray-300">
+          <div class="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
             <%= if @header["email"] && @header["email"] != "" do %>
-              <a
-                href={"mailto:#{@header["email"]}"}
-                class="hover:text-indigo-600 dark:hover:text-indigo-400"
-              >
+              <a href={"mailto:#{@header["email"]}"} class="transition-colors hover:text-foreground">
                 <%= @header["email"] %>
               </a>
             <% end %>
-
             <%= if @header["phone"] && @header["phone"] != "" do %>
               <span><%= @header["phone"] %></span>
             <% end %>
-
             <%= if @header["location"] && @header["location"] != "" do %>
               <span><%= @header["location"] %></span>
             <% end %>
-
             <%= if @header["linkedin"] && @header["linkedin"] != "" do %>
-              <a
-                href={@header["linkedin"]}
-                target="_blank"
-                class="hover:text-indigo-600 dark:hover:text-indigo-400"
-              >
-                LinkedIn
-              </a>
+              <a href={@header["linkedin"]} target="_blank" class="transition-colors hover:text-foreground">LinkedIn</a>
             <% end %>
-
             <%= if @header["github"] && @header["github"] != "" do %>
-              <a
-                href={@header["github"]}
-                target="_blank"
-                class="hover:text-indigo-600 dark:hover:text-indigo-400"
-              >
-                GitHub
-              </a>
+              <a href={@header["github"]} target="_blank" class="transition-colors hover:text-foreground">GitHub</a>
             <% end %>
-
             <%= if @header["website"] && @header["website"] != "" do %>
-              <a
-                href={@header["website"]}
-                target="_blank"
-                class="hover:text-indigo-600 dark:hover:text-indigo-400"
-              >
-                Website
-              </a>
+              <a href={@header["website"]} target="_blank" class="transition-colors hover:text-foreground">Website</a>
             <% end %>
           </div>
         </header>
-        <!-- Summary -->
+
+        <%!-- Summary --%>
         <%= if @additional["summary_md"] && @additional["summary_md"] != "" do %>
-          <section class="prose prose-slate max-w-none dark:prose-invert">
+          <section class="prose-blog text-base text-foreground/85">
             <%= Markdown.render(@additional["summary_md"]) %>
           </section>
         <% end %>
-        <!-- Skills -->
+
+        <%!-- Skills --%>
         <%= if @skills != [] do %>
           <section>
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Skills</h2>
-
+            <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground/60 mb-6">Skills</h2>
             <div class="space-y-4">
               <%= for skill_group <- @skills do %>
                 <div>
-                  <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                    <%= skill_group["category"] %>
-                  </h3>
-
+                  <h3 class="text-sm font-semibold text-foreground mb-2"><%= skill_group["category"] %></h3>
                   <div class="flex flex-wrap gap-2">
                     <%= for item <- skill_group["items"] do %>
-                      <span class="rounded-full bg-indigo-50 px-3 py-1 text-sm font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-100">
+                      <span class="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground">
                         <%= item %>
                       </span>
                     <% end %>
@@ -151,31 +127,24 @@ defmodule BlogWeb.AboutLive do
             </div>
           </section>
         <% end %>
-        <!-- Experience -->
+
+        <%!-- Experience --%>
         <%= if @experience != [] do %>
           <section>
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Experience</h2>
-
+            <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground/60 mb-6">Experience</h2>
             <div class="space-y-6">
               <%= for exp <- @experience do %>
-                <div class="border-l-2 border-indigo-600 pl-4">
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    <%= exp["position"] %>
-                  </h3>
-
-                  <p class="text-gray-600 dark:text-gray-300">
+                <div class="border-l-2 border-border pl-4">
+                  <h3 class="text-base font-semibold text-foreground"><%= exp["position"] %></h3>
+                  <p class="text-sm text-muted-foreground">
                     <%= exp["company"] %>
-                    <%= if exp["location"] do %>
-                      · <%= exp["location"] %>
-                    <% end %>
+                    <%= if exp["location"] do %> · <%= exp["location"] %><% end %>
                   </p>
-
-                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                  <p class="text-xs text-muted-foreground/60">
                     <%= exp["start_date"] %> - <%= exp["end_date"] || "Present" %>
                   </p>
-
                   <%= if exp["description_md"] do %>
-                    <div class="mt-2 prose prose-sm prose-slate max-w-none dark:prose-invert">
+                    <div class="mt-2 prose-blog text-sm text-foreground/85">
                       <%= Markdown.render(exp["description_md"]) %>
                     </div>
                   <% end %>
@@ -184,38 +153,30 @@ defmodule BlogWeb.AboutLive do
             </div>
           </section>
         <% end %>
-        <!-- Projects -->
+
+        <%!-- Projects --%>
         <%= if @projects != [] do %>
           <section>
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Projects</h2>
-
-            <div class="grid gap-4 md:grid-cols-2">
+            <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground/60 mb-6">Projects</h2>
+            <div class="space-y-4">
               <%= for project <- @projects do %>
-                <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                <div class="rounded-lg border border-border/50 p-4">
+                  <h3 class="text-base font-semibold text-foreground">
                     <%= if project["url"] do %>
-                      <a
-                        href={project["url"]}
-                        target="_blank"
-                        class="hover:text-indigo-600 dark:hover:text-indigo-400"
-                      >
-                        <%= project["name"] %>
-                      </a>
+                      <a href={project["url"]} target="_blank" class="transition-colors hover:text-muted-foreground"><%= project["name"] %></a>
                     <% else %>
                       <%= project["name"] %>
                     <% end %>
                   </h3>
-
                   <%= if project["description_md"] do %>
-                    <div class="mt-2 prose prose-sm prose-slate max-w-none dark:prose-invert">
+                    <div class="mt-2 prose-blog text-sm text-foreground/85">
                       <%= Markdown.render(project["description_md"]) %>
                     </div>
                   <% end %>
-
                   <%= if project["tech_stack"] && project["tech_stack"] != [] do %>
                     <div class="mt-3 flex flex-wrap gap-1">
                       <%= for tech <- project["tech_stack"] do %>
-                        <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                        <span class="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-muted-foreground">
                           <%= tech %>
                         </span>
                       <% end %>
@@ -226,26 +187,23 @@ defmodule BlogWeb.AboutLive do
             </div>
           </section>
         <% end %>
-        <!-- Education -->
+
+        <%!-- Education --%>
         <%= if @education != [] do %>
           <section>
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Education</h2>
-
+            <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground/60 mb-6">Education</h2>
             <div class="space-y-4">
               <%= for edu <- @education do %>
                 <div>
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  <h3 class="text-base font-semibold text-foreground">
                     <%= edu["degree"] %> <%= if edu["field"], do: "in #{edu["field"]}" %>
                   </h3>
-
-                  <p class="text-gray-600 dark:text-gray-300"><%= edu["school"] %></p>
-
-                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                  <p class="text-sm text-muted-foreground"><%= edu["school"] %></p>
+                  <p class="text-xs text-muted-foreground/60">
                     <%= edu["start_date"] %> - <%= edu["end_date"] || "Present" %>
                   </p>
-
                   <%= if edu["description_md"] do %>
-                    <div class="mt-2 prose prose-sm prose-slate max-w-none dark:prose-invert">
+                    <div class="mt-2 prose-blog text-sm text-foreground/85">
                       <%= Markdown.render(edu["description_md"]) %>
                     </div>
                   <% end %>
@@ -254,42 +212,34 @@ defmodule BlogWeb.AboutLive do
             </div>
           </section>
         <% end %>
-        <!-- Additional Info -->
+
+        <%!-- Additional Info --%>
         <%= if has_additional_info?(@additional) do %>
           <section class="space-y-4">
             <%= if @additional["certifications"] && @additional["certifications"] != [] do %>
               <div>
-                <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Certifications</h3>
-
-                <ul class="list-disc list-inside text-gray-700 dark:text-gray-300">
+                <h3 class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground/60 mb-2">Certifications</h3>
+                <ul class="list-disc list-inside text-sm text-foreground/85">
                   <%= for cert <- @additional["certifications"] do %>
                     <li><%= cert %></li>
                   <% end %>
                 </ul>
               </div>
             <% end %>
-
             <%= if @additional["languages"] && @additional["languages"] != [] do %>
               <div>
-                <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Languages</h3>
-
+                <h3 class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground/60 mb-2">Languages</h3>
                 <div class="flex flex-wrap gap-2">
                   <%= for lang <- @additional["languages"] do %>
-                    <span class="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-200">
-                      <%= lang %>
-                    </span>
+                    <span class="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground"><%= lang %></span>
                   <% end %>
                 </div>
               </div>
             <% end %>
-
             <%= if @additional["interests"] && @additional["interests"] != [] do %>
               <div>
-                <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Interests</h3>
-
-                <p class="text-gray-700 dark:text-gray-300">
-                  <%= Enum.join(@additional["interests"], ", ") %>
-                </p>
+                <h3 class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground/60 mb-2">Interests</h3>
+                <p class="text-sm text-foreground/85"><%= Enum.join(@additional["interests"], ", ") %></p>
               </div>
             <% end %>
           </section>

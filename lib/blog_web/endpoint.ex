@@ -28,7 +28,7 @@ defmodule BlogWeb.Endpoint do
     at: "/",
     from: :blog,
     gzip: true,
-    only: ~w(assets fonts images vendor favicon.ico robots.txt),
+    only: ~w(assets fonts images uploads music vendor favicon.ico robots.txt),
     cache_control_for_etags: "public, max-age=31536000, immutable",
     headers: [
       {"cache-control", "public, max-age=31536000, immutable"}

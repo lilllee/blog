@@ -2,160 +2,162 @@ defmodule BlogWeb.NoteLive do
   use BlogWeb, :live_view
 
   alias Blog.NoteData
+  alias Blog.Translation
   alias BlogWeb.Markdown
   alias BlogWeb.SEO
 
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="px-4 pb-16 sm:px-8">
-      <div class="mb-6 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-        <.link navigate={~p"/"} class="hover:text-indigo-600">Home</.link> <span>/</span>
-        <span><%= @title %></span>
+    <div>
+      <%!-- Translation loading indicator --%>
+      <div :if={@translating} class="fixed top-16 right-6 z-50 flex items-center gap-2 rounded-lg bg-background border border-border px-3 py-2 shadow-lg">
+        <svg class="h-4 w-4 animate-spin text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span class="text-xs text-muted-foreground">Translating...</span>
       </div>
 
-      <%= if @note do %>
-        <div class="flex flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-12">
-          <div class="space-y-6">
-            <div class="space-y-3">
-              <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100"><%= @title %></h1>
+      <%!-- Back link --%>
+      <.link navigate={~p"/"} class="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+          <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+        </svg>
+        <%= Translation.t("back_to_list", @locale) %>
+      </.link>
 
-              <div class="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
-                <span><%= @published_on %></span> <span>•</span>
-                <span><%= @reading_time %> min read</span>
-                <span
-                  :for={tag <- @tags}
-                  class="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-100"
-                >
+      <%= if @note do %>
+        <article class="mt-10">
+          <%!-- Article header --%>
+          <header class="pb-10 border-b border-border/50">
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <time class="text-xs font-medium tracking-wide text-muted-foreground/70">
+                <%= @published_on %>
+              </time>
+              <%= for tag <- @tags do %>
+                <span class="text-muted-foreground/30">/</span>
+                <span class="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                   <%= tag %>
                 </span>
-              </div>
+              <% end %>
+              <span :if={@reading_time > 0} class="text-muted-foreground/30">&middot;</span>
+              <span :if={@reading_time > 0} class="text-xs font-medium text-muted-foreground">
+                <%= @reading_time %> min read
+              </span>
             </div>
+            <h1 class="mt-4 text-3xl font-bold tracking-tight text-foreground leading-tight text-balance">
+              <%= @title %>
+            </h1>
+          </header>
 
-            <div
-              :if={@image_path}
-              class="overflow-hidden rounded-2xl border border-gray-200 shadow-sm dark:border-gray-800"
-            >
-              <img
-                phx-track-static
-                src={"/images/" <> @image_path}
-                alt={@title}
-                width="980"
-                height="288"
-                loading="eager"
-                fetchpriority="high"
-                decoding="async"
-                class="h-72 w-full object-cover"
-              />
-            </div>
-
-            <article class="markdown-body prose prose-slate max-w-none dark:prose-invert">
-              <%= @content_html %>
-            </article>
-
-            <section
-              :if={@series_prev || @series_next}
-              class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
-            >
-              <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Series navigation</p>
-
-              <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div :if={@series_prev} class="flex items-center gap-2">
-                  <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Previous
-                  </span>
-
-                  <.link
-                    navigate={~p"/posts/#{@series_prev.slug}"}
-                    class="text-sm font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-300"
-                  >
-                    <%= @series_prev.title %>
-                  </.link>
-                </div>
-
-                <div :if={@series_next} class="flex items-center gap-2 sm:ml-auto">
-                  <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Next
-                  </span>
-
-                  <.link
-                    navigate={~p"/posts/#{@series_next.slug}"}
-                    class="text-sm font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-300"
-                  >
-                    <%= @series_next.title %>
-                  </.link>
-                </div>
-              </div>
-            </section>
-
-            <section
-              :if={@related != []}
-              class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
-            >
-              <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Related posts</p>
-
-              <div class="mt-3 grid gap-3 md:grid-cols-2">
-                <%= for rel <- @related do %>
-                  <.link navigate={~p"/posts/#{rel.slug}"}>
-                    <div class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-gray-800 dark:bg-gray-950">
-                      <p class="text-xs text-gray-500 dark:text-gray-400">
-                        <%= format_date(rel.inserted_at) %>
-                      </p>
-
-                      <h3 class="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
-                        <%= rel.title %>
-                      </h3>
-
-                      <p class="mt-1 text-sm text-gray-600 line-clamp-2 dark:text-gray-300">
-                        <%= excerpt(rel.content) %>
-                      </p>
-
-                      <div class="mt-2 flex flex-wrap gap-1">
-                        <span
-                          :for={tag <- Markdown.tag_list(rel.tags)}
-                          class="rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-100"
-                        >
-                          <%= tag %>
-                        </span>
-                      </div>
-                    </div>
-                  </.link>
-                <% end %>
-              </div>
-            </section>
+          <%!-- Cover image --%>
+          <div
+            :if={@image_path}
+            class="mt-10 overflow-hidden rounded-lg"
+          >
+            <img
+              phx-track-static
+              src={"/images/" <> @image_path}
+              alt={@title}
+              width="672"
+              height="378"
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
+              class="w-full object-cover"
+            />
           </div>
 
-          <aside class="hidden space-y-4 md:block lg:sticky lg:top-10">
-            <.live_component
-              module={BlogWeb.TimelinePanel}
-              id="timeline-panel"
-              current_note_id={@note.id}
-            />
-            <div
-              :if={@toc != []}
-              class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
-            >
-              <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Table of contents</p>
+          <%!-- Article body --%>
+          <div class="pt-10 prose-blog text-base text-foreground/85">
+            <%= @content_html %>
+          </div>
 
-              <nav class="mt-3 space-y-1">
-                <%= for item <- @toc do %>
-                  <a
-                    href={"##{item.id}"}
-                    class={[
-                      "block rounded-md px-2 py-1 text-sm transition hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-900/30",
-                      item.level == 3 && "pl-5 text-gray-600 dark:text-gray-300"
-                    ]}
-                  >
-                    <%= item.title %>
-                  </a>
-                <% end %>
-              </nav>
+          <%!-- Series navigation --%>
+          <section
+            :if={@series_prev || @series_next}
+            class="mt-10 rounded-lg border border-border/50 p-5"
+          >
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground/60"><%= Translation.t("series_nav", @locale) %></p>
+            <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div :if={@series_prev} class="flex flex-col gap-1">
+                <span class="text-xs text-muted-foreground/50"><%= Translation.t("prev", @locale) %></span>
+                <.link
+                  navigate={~p"/posts/#{@series_prev.slug}"}
+                  class="text-sm font-medium text-foreground hover:text-muted-foreground transition-colors"
+                >
+                  <%= @series_prev.title %>
+                </.link>
+              </div>
+              <div :if={@series_next} class="flex flex-col gap-1 sm:ml-auto sm:text-right">
+                <span class="text-xs text-muted-foreground/50"><%= Translation.t("next", @locale) %></span>
+                <.link
+                  navigate={~p"/posts/#{@series_next.slug}"}
+                  class="text-sm font-medium text-foreground hover:text-muted-foreground transition-colors"
+                >
+                  <%= @series_next.title %>
+                </.link>
+              </div>
             </div>
-          </aside>
-        </div>
+          </section>
+
+          <%!-- Chronological navigation --%>
+          <nav
+            :if={@chrono_prev || @chrono_next}
+            class="mt-10 grid grid-cols-2 gap-4"
+          >
+            <div>
+              <.link
+                :if={@chrono_prev}
+                navigate={~p"/posts/#{@chrono_prev.slug}"}
+                class="group block rounded-lg border border-border/50 p-4 transition-colors hover:bg-muted"
+              >
+                <span class="text-xs text-muted-foreground"><%= Translation.t("prev", @locale) %></span>
+                <p class="mt-1 text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors line-clamp-2">
+                  <%= @chrono_prev.title %>
+                </p>
+              </.link>
+            </div>
+            <div class="text-right">
+              <.link
+                :if={@chrono_next}
+                navigate={~p"/posts/#{@chrono_next.slug}"}
+                class="group block rounded-lg border border-border/50 p-4 transition-colors hover:bg-muted"
+              >
+                <span class="text-xs text-muted-foreground"><%= Translation.t("next", @locale) %></span>
+                <p class="mt-1 text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors line-clamp-2">
+                  <%= @chrono_next.title %>
+                </p>
+              </.link>
+            </div>
+          </nav>
+
+          <%!-- Related posts --%>
+          <section :if={@related != []} class="mt-10 pt-10 border-t border-border/50">
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground/60"><%= Translation.t("related_posts", @locale) %></p>
+            <div class="mt-6 divide-y divide-border/50">
+              <%= for rel <- @related do %>
+                <.link navigate={~p"/posts/#{rel.slug}"} class="group block py-4 first:pt-0">
+                  <div class="flex items-center gap-2.5">
+                    <time class="text-xs font-medium tracking-wide text-muted-foreground/70">
+                      <%= format_date(rel.inserted_at) %>
+                    </time>
+                  </div>
+                  <h3 class="mt-1.5 text-base font-semibold text-foreground group-hover:text-muted-foreground transition-colors">
+                    <%= rel.title %>
+                  </h3>
+                  <p class="mt-1 text-sm text-muted-foreground line-clamp-2">
+                    <%= excerpt(rel.content) %>
+                  </p>
+                </.link>
+              <% end %>
+            </div>
+          </section>
+        </article>
       <% else %>
-        <div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
-          해당 글을 찾을 수 없습니다.
+        <div class="mt-10 py-16 text-center">
+          <p class="text-sm text-muted-foreground"><%= Translation.t("not_found", @locale) %></p>
         </div>
       <% end %>
     </div>
@@ -164,6 +166,8 @@ defmodule BlogWeb.NoteLive do
 
   @impl true
   def mount(%{"slug" => slug}, _session, socket) do
+    locale = socket.assigns[:locale] || "ko"
+
     case NoteData.get_published_note_by_slug(slug) do
       nil ->
         {:ok,
@@ -179,8 +183,12 @@ defmodule BlogWeb.NoteLive do
            related: [],
            series_prev: nil,
            series_next: nil,
+           chrono_prev: nil,
+           chrono_next: nil,
            page_title: "Not found",
-           meta: %{title: "Not found"}
+           meta: %{title: "Not found"},
+           translating: false,
+           original_note: nil
          )}
 
       note ->
@@ -192,25 +200,91 @@ defmodule BlogWeb.NoteLive do
 
         related = NoteData.related_notes(note, 5)
         %{prev: series_prev, next: series_next} = NoteData.series_neighbors(note)
+        %{prev: chrono_prev, next: chrono_next} = NoteData.chronological_neighbors(note)
 
         seo = SEO.seo_assigns(:post, note)
 
-        {:ok,
-         socket
-         |> assign(seo)
-         |> assign(
-           note: note,
+        socket =
+          socket
+          |> assign(seo)
+          |> assign(
+            note: note,
+            original_note: note,
+            title: note.title,
+            image_path: note.image_path,
+            content_html: content_html,
+            toc: toc,
+            tags: tags,
+            reading_time: reading_time,
+            published_on: format_date(note.published_at || note.inserted_at),
+            related: related,
+            series_prev: series_prev,
+            series_next: series_next,
+            chrono_prev: chrono_prev,
+            chrono_next: chrono_next,
+            translating: false
+          )
+
+        if locale != "ko" and connected?(socket) do
+          send(self(), {:translate, locale})
+        end
+
+        {:ok, socket}
+    end
+  end
+
+  @impl true
+  def handle_info({:locale_changed, locale}, socket) do
+    if socket.assigns[:original_note] do
+      if locale == "ko" do
+        note = socket.assigns.original_note
+        {content_html, toc} = content_and_toc(note)
+
+        {:noreply,
+         assign(socket,
            title: note.title,
-           image_path: note.image_path,
            content_html: content_html,
            toc: toc,
-           tags: tags,
-           reading_time: reading_time,
-           published_on: format_date(note.published_at || note.inserted_at),
-           related: related,
-           series_prev: series_prev,
-           series_next: series_next
+           translating: false
          )}
+      else
+        send(self(), {:translate, locale})
+        {:noreply, assign(socket, translating: true)}
+      end
+    else
+      {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_info({:translate, locale}, socket) do
+    note = socket.assigns[:original_note]
+
+    if note do
+      Task.start(fn ->
+        translated = Translation.translate_post(note, locale)
+        send(socket.root_pid, {:translation_complete, translated, locale})
+      end)
+
+      {:noreply, assign(socket, translating: true)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_info({:translation_complete, translated_note, locale}, socket) do
+    if socket.assigns[:locale] == locale do
+      {content_html, toc} = content_and_toc(translated_note)
+
+      {:noreply,
+       assign(socket,
+         title: translated_note.title,
+         content_html: content_html,
+         toc: toc,
+         translating: false
+       )}
+    else
+      {:noreply, socket}
     end
   end
 
