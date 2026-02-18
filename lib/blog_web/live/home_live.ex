@@ -105,31 +105,77 @@ defmodule BlogWeb.HomeLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    locale = socket.assigns[:locale] || "ko"
     all_tags = NoteData.list_tags()
     posts = NoteData.list_notes()
 
-    {:ok,
-     assign(socket,
-       posts: posts,
-       all_tags: all_tags,
-       selected_tag: "",
-       page_title: "JunHo's Blog",
-       meta: %{
-         title: "JunHo's Blog",
-         description: "개발, 일상, 그리고 생각을 기록합니다.",
-         og_title: "JunHo's Blog",
-         og_description: "개발, 일상, 그리고 생각을 기록합니다.",
-         og_type: "website"
-       }
-     )}
+    socket =
+      assign(socket,
+        posts: posts,
+        original_posts: posts,
+        all_tags: all_tags,
+        selected_tag: "",
+        page_title: "JunHo's Blog",
+        meta: %{
+          title: "JunHo's Blog",
+          description: Translation.t("subtitle", locale),
+          og_title: "JunHo's Blog",
+          og_description: Translation.t("subtitle", locale),
+          og_type: "website"
+        }
+      )
+
+    if locale != "ko" and connected?(socket) do
+      send(self(), {:translate_posts, locale})
+    end
+
+    {:ok, socket}
   end
 
   @impl true
-  def handle_info({:locale_changed, _locale}, socket), do: {:noreply, socket}
+  def handle_info({:locale_changed, locale}, socket) do
+    if locale == "ko" do
+      {:noreply, assign(socket, posts: socket.assigns.original_posts)}
+    else
+      send(self(), {:translate_posts, locale})
+      {:noreply, socket}
+    end
+  end
+
+  def handle_info({:translate_posts, locale}, socket) do
+    posts = socket.assigns.original_posts
+    pid = self()
+
+    Task.start(fn ->
+      translated =
+        Enum.map(posts, fn post ->
+          translated_title =
+            case Translation.translate(post.title, locale) do
+              {:ok, t} when is_binary(t) -> t
+              _ -> post.title
+            end
+
+          %{post | title: translated_title}
+        end)
+
+      send(pid, {:posts_translated, translated, locale})
+    end)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:posts_translated, translated_posts, locale}, socket) do
+    if socket.assigns[:locale] == locale do
+      {:noreply, assign(socket, posts: translated_posts)}
+    else
+      {:noreply, socket}
+    end
+  end
 
   @impl true
   def handle_event("filter_tag", %{"tag" => tag}, socket) do
     tag = String.trim(tag)
+    locale = socket.assigns[:locale] || "ko"
 
     posts =
       if tag == "" do
@@ -138,7 +184,13 @@ defmodule BlogWeb.HomeLive do
         NoteData.list_notes(%{tag: tag})
       end
 
-    {:noreply, assign(socket, posts: posts, selected_tag: tag)}
+    socket = assign(socket, original_posts: posts, posts: posts, selected_tag: tag)
+
+    if locale != "ko" do
+      send(self(), {:translate_posts, locale})
+    end
+
+    {:noreply, socket}
   end
 
   defp format_date(%DateTime{} = date), do: Calendar.strftime(date, "%Y.%m.%d")

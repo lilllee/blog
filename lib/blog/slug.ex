@@ -1,6 +1,7 @@
 defmodule Blog.Slug do
   @moduledoc """
   Generates URL-friendly slugs from text.
+  Supports Korean (Hangul), Japanese (Kana/Kanji), Chinese (CJK), and Latin characters.
   """
 
   @doc """
@@ -12,17 +13,26 @@ defmodule Blog.Slug do
 
       iex> Blog.Slug.generate("Elixir & Phoenix: 123 Tips")
       "elixir-phoenix-123-tips"
+
+      iex> Blog.Slug.generate("한글 제목 테스트")
+      "한글-제목-테스트"
   """
   def generate(nil), do: ""
 
   def generate(text) when is_binary(text) do
-    text
-    |> String.downcase()
-    |> String.normalize(:nfd)
-    |> String.replace(~r/[^a-z0-9\s-]/u, "")
-    |> String.replace(~r/\s+/, "-")
-    |> String.replace(~r/-+/, "-")
-    |> String.trim("-")
+    slug =
+      text
+      |> String.downcase()
+      |> String.replace(~r/[^\p{L}\p{N}\s-]/u, "")
+      |> String.replace(~r/\s+/, "-")
+      |> String.replace(~r/-+/, "-")
+      |> String.trim("-")
+
+    if slug == "" do
+      "post-#{System.os_time(:second)}"
+    else
+      slug
+    end
   end
 
   @doc """

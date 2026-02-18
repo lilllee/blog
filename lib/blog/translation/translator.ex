@@ -31,13 +31,15 @@ defmodule Blog.Translation.Translator do
     if target_lang == source_lang do
       post
     else
+      source_text = post.raw_markdown || post.content
       translated_title = translate_field(post.title, target_lang, source_lang)
-      translated_body = translate_field(post.body, target_lang, source_lang)
+      translated_body = translate_field(source_text, target_lang, source_lang)
 
       post
       |> Map.put(:title, translated_title || post.title)
-      |> Map.put(:body, translated_body || post.body)
-      |> maybe_update_html_body(translated_body)
+      |> Map.put(:raw_markdown, translated_body || source_text)
+      |> Map.put(:content, translated_body || source_text)
+      |> maybe_update_rendered_html(translated_body)
     end
   end
 
@@ -51,13 +53,12 @@ defmodule Blog.Translation.Translator do
     end
   end
 
-  defp maybe_update_html_body(post, nil), do: post
+  defp maybe_update_rendered_html(post, nil), do: post
 
-  defp maybe_update_html_body(post, translated_body) do
-    case MDEx.to_html(translated_body, extension: [table: true, strikethrough: true]) do
-      {:ok, html} -> Map.put(post, :html_body, html)
-      _ -> post
-    end
+  defp maybe_update_rendered_html(post, _translated_body) do
+    post
+    |> Map.put(:rendered_html, nil)
+    |> Map.put(:toc, nil)
   end
 
   defp translate_and_cache(text, content_hash, source_lang, target_lang) do

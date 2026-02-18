@@ -1,6 +1,6 @@
 defmodule Blog.Translation.GeminiClient do
   @moduledoc """
-  Gemini API client for text translation.
+  Gemini API client for text translation using Finch.
   """
 
   require Logger
@@ -14,6 +14,7 @@ defmodule Blog.Translation.GeminiClient do
     model = get_model()
 
     if is_nil(api_key) or api_key == "" do
+      Logger.warning("Gemini API key not configured, skipping translation")
       {:error, :api_key_not_configured}
     else
       do_translate(text, source_lang, target_lang, api_key, model)
@@ -26,35 +27,19 @@ defmodule Blog.Translation.GeminiClient do
     prompt = build_prompt(text, source_lang, target_lang)
 
     body = Jason.encode!(%{
-      contents: [
-        %{
-          parts: [
-            %{text: prompt}
-          ]
-        }
-      ],
-      generationConfig: %{
-        temperature: 0.1,
-        maxOutputTokens: 8192
-      }
+      contents: [%{parts: [%{text: prompt}]}],
+      generationConfig: %{temperature: 0.1, maxOutputTokens: 8192}
     })
 
-    headers = [
-      {"Content-Type", "application/json"}
-    ]
+    request = Finch.build(:post, url, [{"content-type", "application/json"}], body)
 
-    case :httpc.request(
-      :post,
-      {String.to_charlist(url), headers, ~c"application/json", body},
-      [timeout: @timeout, connect_timeout: 5_000],
-      []
-    ) do
-      {:ok, {{_, 200, _}, _, response_body}} ->
+    case Finch.request(request, Blog.Finch, receive_timeout: @timeout) do
+      {:ok, %Finch.Response{status: 200, body: response_body}} ->
         parse_response(response_body)
 
-      {:ok, {{_, status_code, _}, _, response_body}} ->
-        Logger.error("Gemini API error: #{status_code} - #{response_body}")
-        {:error, {:api_error, status_code, to_string(response_body)}}
+      {:ok, %Finch.Response{status: status, body: response_body}} ->
+        Logger.error("Gemini API error: #{status} - #{String.slice(response_body, 0, 500)}")
+        {:error, {:api_error, status, response_body}}
 
       {:error, reason} ->
         Logger.error("Gemini API request failed: #{inspect(reason)}")
@@ -78,7 +63,7 @@ defmodule Blog.Translation.GeminiClient do
   end
 
   defp parse_response(response_body) do
-    case Jason.decode(to_string(response_body)) do
+    case Jason.decode(response_body) do
       {:ok, %{"candidates" => [%{"content" => %{"parts" => [%{"text" => text} | _]}} | _]}} ->
         {:ok, String.trim(text)}
 

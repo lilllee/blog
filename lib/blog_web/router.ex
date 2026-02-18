@@ -38,6 +38,7 @@ defmodule BlogWeb.Router do
     get "/robots.txt", FeedController, :robots
 
     # Legacy redirects
+    get "/posts", RedirectController, :posts_index
     get "/notes/:id", RedirectController, :old_item_to_slug
     get "/item/:id", RedirectController, :old_item_to_slug
   end
