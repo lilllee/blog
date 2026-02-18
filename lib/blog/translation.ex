@@ -31,7 +31,7 @@ defmodule Blog.Translation do
       "no_posts_yet" => "아직 작성된 글이 없습니다.",
       "copyright" => "All rights reserved.",
       "all" => "전체",
-      "subtitle" => "개발, 일상, 그리고 생각을 기록합니다.",
+      "subtitle" => "기록",
       "back_to_list" => "목록으로",
       "series_nav" => "시리즈 탐색",
       "related_posts" => "관련 글",
