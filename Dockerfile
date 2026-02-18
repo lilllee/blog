@@ -80,7 +80,7 @@ RUN mix release
 FROM ${RUNNER_IMAGE}
 
 RUN apt-get update -y && \
-  apt-get install -y libstdc++6 openssl libncurses6 locales ca-certificates \
+  apt-get install -y libstdc++6 openssl libncurses6 locales ca-certificates gosu \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # Set the locale
@@ -104,8 +104,6 @@ RUN chmod +x /app/bin/server /app/bin/migrate /app/bin/blog
 COPY --from=builder /usr/bin/litestream /usr/bin/litestream
 COPY litestream.sh /app/bin/litestream.sh
 COPY config/litestream.yml /etc/litestream.yml
-
-USER nobody
 
 # If using an environment that doesn't automatically reap zombie processes, it is
 # advised to add an init process such as tini via `apt-get install`
