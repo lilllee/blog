@@ -20,6 +20,7 @@ defmodule BlogWeb.Plugs.Compression do
         # Phoenix already handles gzip via Cowboy
         # This ensures vary header is set
         conn
+
       _ ->
         conn
     end

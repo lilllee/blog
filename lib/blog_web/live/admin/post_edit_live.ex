@@ -83,7 +83,7 @@ defmodule BlogWeb.Admin.PostEditLive do
 
           <h1 class="text-2xl font-bold text-foreground"><%= @page_title %></h1>
         </div>
-        
+
         <.link
           navigate={~p"/admin/posts"}
           class="text-sm font-semibold text-muted-foreground hover:text-foreground"
@@ -91,7 +91,7 @@ defmodule BlogWeb.Admin.PostEditLive do
           ← Back to posts
         </.link>
       </div>
-      
+
       <.simple_form
         :let={f}
         for={@changeset}
@@ -108,8 +108,9 @@ defmodule BlogWeb.Admin.PostEditLive do
           </label>
           <.live_file_input upload={@uploads.image} class="block w-full text-sm" />
           <p class="text-xs text-muted-foreground">
-            Saves to <code>priv/static/images/uploads</code> and stores <code>uploads/&lt;filename&gt;</code> in
-            <code>image_path</code>.
+            Saves to <code>priv/static/images/uploads</code>
+            and stores <code>uploads/&lt;filename&gt;</code>
+            in <code>image_path</code>.
           </p>
           <%= for entry <- @uploads.image.entries do %>
             <div class="flex items-center gap-3">
@@ -118,7 +119,9 @@ defmodule BlogWeb.Admin.PostEditLive do
               </div>
               <div class="flex-1">
                 <p class="text-xs text-muted-foreground"><%= entry.client_name %></p>
-                <progress class="w-full" value={entry.progress} max="100"><%= entry.progress %>%</progress>
+                <progress class="w-full" value={entry.progress} max="100">
+                  <%= entry.progress %>%
+                </progress>
                 <%= for err <- upload_errors(@uploads.image, entry) do %>
                   <p class="text-xs text-rose-600"><%= upload_error_to_string(err) %></p>
                 <% end %>
@@ -137,7 +140,7 @@ defmodule BlogWeb.Admin.PostEditLive do
           <.input field={f[:series_id]} label="Series ID" />
           <.input field={f[:series_order]} type="number" label="Series order" />
         </div>
-        
+
         <.input
           field={f[:status]}
           type="select"
@@ -148,7 +151,7 @@ defmodule BlogWeb.Admin.PostEditLive do
         <:actions>
           <div class="flex gap-3">
             <.button type="submit" name="status" value="draft">Save draft</.button>
-            
+
             <.button
               type="submit"
               name="status"

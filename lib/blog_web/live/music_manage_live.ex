@@ -104,7 +104,9 @@ defmodule BlogWeb.MusicManageLive do
           <%= for entry <- @uploads.audio.entries do %>
             <div class="space-y-1 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-xs text-slate-200">
               <p><%= entry.client_name %></p>
-              <progress class="w-full" value={entry.progress} max="100"><%= entry.progress %>%</progress>
+              <progress class="w-full" value={entry.progress} max="100">
+                <%= entry.progress %>%
+              </progress>
               <%= for err <- upload_errors(@uploads.audio, entry) do %>
                 <p class="text-rose-400"><%= upload_error_to_string(err) %></p>
               <% end %>

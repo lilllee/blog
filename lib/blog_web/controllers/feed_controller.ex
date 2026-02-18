@@ -14,6 +14,7 @@ defmodule BlogWeb.FeedController do
 
     conn
     |> put_resp_content_type("application/rss+xml; charset=utf-8")
+    |> put_resp_header("cache-control", "public, max-age=3600, s-maxage=3600")
     |> send_resp(200, xml)
   end
 
@@ -21,11 +22,12 @@ defmodule BlogWeb.FeedController do
     base = BlogWeb.Endpoint.url()
 
     xml =
-      NoteData.list_recent(200)
+      NoteData.list_recent(500)
       |> build_sitemap(base, NoteData.list_tags())
 
     conn
     |> put_resp_content_type("application/xml; charset=utf-8")
+    |> put_resp_header("cache-control", "public, max-age=3600, s-maxage=3600")
     |> send_resp(200, xml)
   end
 
@@ -34,25 +36,16 @@ defmodule BlogWeb.FeedController do
 
     content = """
     # robots.txt for #{base}
-    # Updated: #{Date.utc_today() |> Date.to_iso8601()}
 
-    # Block all crawlers from admin area
     User-agent: *
     Disallow: /admin/
     Disallow: /admin
     Disallow: /dev/
-
-    # Block crawlers from LiveView internal routes
     Disallow: /live/
     Disallow: /phoenix/
-
-    # Block search-specific paths (if they exist)
     Disallow: /*?query=
     Disallow: /*?search=
-    Disallow: /*&query=
-    Disallow: /*&search=
 
-    # Allow specific public paths
     Allow: /
     Allow: /posts/
     Allow: /list
@@ -60,16 +53,35 @@ defmodule BlogWeb.FeedController do
     Allow: /images/
     Allow: /assets/
 
-    # Allow old URLs for redirect crawling
-    Allow: /item/
-
-    # Crawl-delay to be respectful (optional)
-    # Crawl-delay: 1
-
-    # Sitemap location
+    # Sitemap
     Sitemap: #{base}/sitemap.xml
 
-    # Block bad bots (aggressive crawlers)
+    # Block AI training crawlers
+    User-agent: GPTBot
+    Disallow: /
+
+    User-agent: ChatGPT-User
+    Disallow: /
+
+    User-agent: CCBot
+    Disallow: /
+
+    User-agent: anthropic-ai
+    Disallow: /
+
+    User-agent: ClaudeBot
+    Disallow: /
+
+    User-agent: Google-Extended
+    Disallow: /
+
+    User-agent: FacebookBot
+    Disallow: /
+
+    User-agent: Bytespider
+    Disallow: /
+
+    # Block aggressive SEO crawlers
     User-agent: AhrefsBot
     Disallow: /
 
@@ -82,7 +94,7 @@ defmodule BlogWeb.FeedController do
     User-agent: MJ12bot
     Disallow: /
 
-    # Allow good bots explicitly (redundant but clear)
+    # Allow search engine bots explicitly
     User-agent: Googlebot
     Allow: /
     Disallow: /admin/
@@ -90,77 +102,117 @@ defmodule BlogWeb.FeedController do
     User-agent: Bingbot
     Allow: /
     Disallow: /admin/
+
+    User-agent: Yeti
+    Allow: /
+    Disallow: /admin/
     """
 
     conn
     |> put_resp_content_type("text/plain; charset=utf-8")
-    |> put_resp_header("cache-control", "public, max-age=3600")
+    |> put_resp_header("cache-control", "public, max-age=86400")
     |> send_resp(200, content)
   end
 
   defp build_rss(posts, base) do
+    last_build =
+      case posts do
+        [first | _] -> rss_date(first.published_at || first.inserted_at)
+        [] -> rss_date(DateTime.utc_now())
+      end
+
     items =
       Enum.map_join(posts, "\n", fn post ->
         link = base <> ~p"/posts/#{post.slug}"
+        tags = parse_tags(post.tags)
+
+        categories =
+          Enum.map_join(tags, "\n", fn tag ->
+            "      <category>#{escape(tag)}</category>"
+          end)
+
+        content_encoded = excerpt_html(post.content || post.raw_markdown)
 
         """
-        <item>
-          <title>#{escape(post.title)}</title>
-          <link>#{link}</link>
-          <guid isPermaLink="true">#{link}</guid>
-          <pubDate>#{rss_date(post.published_at || post.inserted_at)}</pubDate>
-          <description><![CDATA[#{excerpt(post.content)}]]></description>
-        </item>
+            <item>
+              <title>#{escape(post.title)}</title>
+              <link>#{link}</link>
+              <guid isPermaLink="true">#{link}</guid>
+              <pubDate>#{rss_date(post.published_at || post.inserted_at)}</pubDate>
+              <dc:creator>JunHo Lee</dc:creator>
+              <description><![CDATA[#{excerpt(post.content || post.raw_markdown)}]]></description>
+              <content:encoded><![CDATA[#{content_encoded}]]></content:encoded>
+        #{categories}
+            </item>
         """
       end)
 
     """
     <?xml version="1.0" encoding="UTF-8"?>
-    <rss version="2.0">
+    <rss version="2.0"
+      xmlns:atom="http://www.w3.org/2005/Atom"
+      xmlns:content="http://purl.org/rss/1.0/modules/content/"
+      xmlns:dc="http://purl.org/dc/elements/1.1/">
       <channel>
-        <title>Personal developer blog</title>
+        <title>JunHo's Blog</title>
         <link>#{base}</link>
-        <description>Posts about Elixir, Phoenix, and engineering notes.</description>
-        #{items}
+        <description>Elixir, Phoenix, and daily engineering notes.</description>
+        <language>ko</language>
+        <lastBuildDate>#{last_build}</lastBuildDate>
+        <atom:link href="#{base}/rss.xml" rel="self" type="application/rss+xml" />
+    #{items}
       </channel>
     </rss>
     """
   end
 
   defp build_sitemap(posts, base, tags) do
-    urls =
+    static_urls =
       [
-        sitemap_url("#{base}/"),
-        sitemap_url("#{base}/list")
-      ] ++
-        Enum.map(posts, fn post ->
-          sitemap_url(base <> ~p"/posts/#{post.slug}", post.published_at || post.inserted_at)
-        end) ++
-        Enum.map(tags, fn tag ->
-          query = URI.encode(tag)
-          sitemap_url("#{base}/list?tag=#{query}")
-        end)
+        sitemap_url("#{base}/", "daily", "1.0"),
+        sitemap_url("#{base}/about", "monthly", "0.7"),
+        sitemap_url("#{base}/list", "daily", "0.6")
+      ]
+
+    post_urls =
+      Enum.map(posts, fn post ->
+        sitemap_url(
+          base <> ~p"/posts/#{post.slug}",
+          "weekly",
+          "0.8",
+          post.updated_at || post.published_at || post.inserted_at
+        )
+      end)
+
+    tag_urls =
+      Enum.map(tags, fn tag ->
+        query = URI.encode(tag)
+        sitemap_url("#{base}/list?tag=#{query}", "weekly", "0.4")
+      end)
+
+    urls = static_urls ++ post_urls ++ tag_urls
 
     """
     <?xml version="1.0" encoding="UTF-8"?>
     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-      #{Enum.join(urls, "\n")}
+    #{Enum.join(urls, "\n")}
     </urlset>
     """
   end
 
-  defp sitemap_url(loc, lastmod \\ nil) do
+  defp sitemap_url(loc, changefreq, priority, lastmod \\ nil) do
     lastmod_xml =
       case lastmod do
         nil -> ""
-        date -> "<lastmod>#{iso_date(date)}</lastmod>"
+        date -> "\n    <lastmod>#{iso_date(date)}</lastmod>"
       end
 
     """
-    <url>
-      <loc>#{escape(loc)}</loc>
-      #{lastmod_xml}
-    </url>
+      <url>
+        <loc>#{escape(loc)}</loc>#{lastmod_xml}
+        <changefreq>#{changefreq}</changefreq>
+        <priority>#{priority}</priority>
+      </url>
     """
   end
 
@@ -191,13 +243,30 @@ defmodule BlogWeb.FeedController do
   defp excerpt(content) do
     content
     |> to_string()
+    |> String.replace(~r/[#*`\[\]()>_~\-|]/, "")
+    |> String.replace(~r/!\[.*?\]\(.*?\)/, "")
+    |> String.replace(~r/\[([^\]]*)\]\([^\)]*\)/, "\\1")
     |> String.replace(~r/\s+/, " ")
-    |> String.slice(0, 200)
-    |> case do
-      text when byte_size(text) < 200 -> text
-      text -> text <> "…"
-    end
+    |> String.trim()
+    |> String.slice(0, 300)
   end
+
+  defp excerpt_html(content) do
+    content
+    |> to_string()
+    |> String.slice(0, 2000)
+  end
+
+  defp parse_tags(nil), do: []
+  defp parse_tags(""), do: []
+
+  defp parse_tags(tags) when is_binary(tags) do
+    tags
+    |> String.split(",", trim: true)
+    |> Enum.map(&String.trim/1)
+  end
+
+  defp parse_tags(tags) when is_list(tags), do: tags
 
   defp escape(nil), do: ""
 

@@ -1,16 +1,28 @@
 <header class="sticky top-0 z-50 border-b border-border bg-background backdrop-blur-none">
   <div class="mx-auto flex max-w-2xl items-center justify-between px-6 py-4">
     <nav class="flex items-center gap-6">
-      <.link navigate={~p"/"} class={[
-        "text-sm transition-colors hover:text-foreground",
-        if(assigns[:current_path] in ["/", nil], do: "font-semibold text-foreground", else: "font-normal text-muted-foreground")
-      ]}>
+      <.link
+        navigate={~p"/"}
+        class={[
+          "text-sm transition-colors hover:text-foreground",
+          if(assigns[:current_path] in ["/", nil],
+            do: "font-semibold text-foreground",
+            else: "font-normal text-muted-foreground"
+          )
+        ]}
+      >
         <%= Blog.Translation.t("blog", assigns[:locale] || "ko") %>
       </.link>
-      <.link navigate={~p"/about"} class={[
-        "text-sm transition-colors hover:text-foreground",
-        if(assigns[:current_path] == "/about", do: "font-semibold text-foreground", else: "font-normal text-muted-foreground")
-      ]}>
+      <.link
+        navigate={~p"/about"}
+        class={[
+          "text-sm transition-colors hover:text-foreground",
+          if(assigns[:current_path] == "/about",
+            do: "font-semibold text-foreground",
+            else: "font-normal text-muted-foreground"
+          )
+        ]}
+      >
         <%= Blog.Translation.t("about", assigns[:locale] || "ko") %>
       </.link>
     </nav>
@@ -24,14 +36,35 @@
           class="flex h-8 items-center gap-1 rounded-full border border-border px-2.5 text-xs text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
           aria-label="Change language"
         >
-          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg
+            class="h-3.5 w-3.5"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="2" y1="12" x2="22" y2="12"></line>
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+            </path>
           </svg>
-          <span id="current-lang-label"><%= Blog.Translation.get_language_name(assigns[:locale] || "ko") %></span>
-          <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+          <span id="current-lang-label">
+            <%= Blog.Translation.get_language_name(assigns[:locale] || "ko") %>
+          </span>
+          <svg
+            class="h-3 w-3"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+              clip-rule="evenodd"
+            />
           </svg>
         </button>
         <div
@@ -80,7 +113,16 @@
         aria-label="Toggle dark mode"
       >
         <!-- Sun icon (shown in dark mode) -->
-        <svg class="hidden h-3.5 w-3.5 dark:block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          class="hidden h-3.5 w-3.5 dark:block"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <circle cx="12" cy="12" r="5"></circle>
           <line x1="12" y1="1" x2="12" y2="3"></line>
           <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -92,7 +134,16 @@
           <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
         </svg>
         <!-- Moon icon (shown in light mode) -->
-        <svg class="block h-3.5 w-3.5 dark:hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          class="block h-3.5 w-3.5 dark:hidden"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
         </svg>
       </button>
@@ -107,19 +158,22 @@
 
 <footer class="mx-auto max-w-2xl border-t border-border/50 px-6 py-8">
   <p class="text-xs text-muted-foreground/50">
-    &copy; <%= DateTime.utc_now().year %> JunHo. <%= Blog.Translation.t("copyright", assigns[:locale] || "ko") %>
+    &copy; <%= DateTime.utc_now().year %> JunHo. <%= Blog.Translation.t(
+      "copyright",
+      assigns[:locale] || "ko"
+    ) %>
   </p>
 </footer>
 
 <script>
-document.addEventListener('click',function(e){
-  var d=document.getElementById('lang-dropdown');
-  var m=document.getElementById('lang-menu');
-  if(d&&m&&!d.contains(e.target))m.classList.add('hidden');
-});
-document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'){var m=document.getElementById('lang-menu');if(m)m.classList.add('hidden');}
-});
+  document.addEventListener('click',function(e){
+    var d=document.getElementById('lang-dropdown');
+    var m=document.getElementById('lang-menu');
+    if(d&&m&&!d.contains(e.target))m.classList.add('hidden');
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){var m=document.getElementById('lang-menu');if(m)m.classList.add('hidden');}
+  });
 </script>
 
 <%= if assigns[:music_tracks] do %>

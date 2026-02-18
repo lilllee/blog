@@ -3,39 +3,6 @@ defmodule BlogWeb.SEO do
   SEO helper functions for generating structured data (JSON-LD), meta tags, and canonical URLs.
   """
 
-  @doc """
-  Returns SEO assigns for use in LiveView mount/3 or controller actions.
-  Provides both meta tags and JSON-LD structured data.
-
-  ## Usage
-
-      # In LiveView
-      def mount(%{"slug" => slug}, _session, socket) do
-        note = get_note(slug)
-        seo = SEO.seo_assigns(:post, note)
-        {:ok, assign(socket, seo)}
-      end
-
-      # In Controller
-      def index(conn, _params) do
-        posts = list_posts()
-        seo = SEO.seo_assigns(:blog, posts)
-        render(conn, "index.html", seo)
-      end
-
-  ## Content Types
-
-  - `:post` - Individual blog post (requires note with slug)
-  - `:blog` - Blog homepage/list (requires list of posts)
-  - `:page` - Generic page (requires title, description, path)
-
-  ## Returns
-
-      %{
-        meta: %{title, description, url, type, image, ...},
-        json_ld: safe_html_encoded_json
-      }
-  """
   def seo_assigns(type, data, opts \\ [])
 
   def seo_assigns(:post, note, _opts) when is_map(note) do
@@ -45,7 +12,11 @@ defmodule BlogWeb.SEO do
     description =
       (note.raw_markdown || note.content)
       |> to_string()
+      |> String.replace(~r/!\[.*?\]\(.*?\)/, "")
+      |> String.replace(~r/\[([^\]]*)\]\([^\)]*\)/, "\\1")
+      |> String.replace(~r/[#*`\[\]()>_~\-|]/, "")
       |> String.replace(~r/\s+/, " ")
+      |> String.trim()
       |> String.slice(0, 160)
 
     og_image = BlogWeb.OGImage.get_image_url(:post, note)
@@ -54,11 +25,16 @@ defmodule BlogWeb.SEO do
       title: note.title,
       description: description,
       url: url,
+      canonical_url: url,
+      og_url: url,
+      og_image: og_image,
+      og_title: note.title,
+      og_description: description,
       type: "article",
       image: og_image,
       published_time: iso8601_date(note.published_at || note.inserted_at),
       modified_time: iso8601_date(note.updated_at),
-      author: "Your Name"
+      author: "JunHo Lee"
     }
 
     json_ld = blog_posting_schema(note, url) |> encode_schema()
@@ -72,19 +48,25 @@ defmodule BlogWeb.SEO do
 
   def seo_assigns(:blog, posts, opts) when is_list(posts) do
     base_url = BlogWeb.Endpoint.url()
-    title = opts[:title] || "Personal development blog"
+    title = opts[:title] || "JunHo's Blog"
     description = opts[:description] || "Elixir, Phoenix, and daily engineering notes."
     path = opts[:path] || "/"
+    url = base_url <> path
 
     meta = %{
       title: title,
       description: description,
-      url: base_url <> path,
+      url: url,
+      canonical_url: url,
+      og_url: url,
+      og_image: base_url <> "/images/og-default.png",
+      og_title: title,
+      og_description: description,
       type: "website",
-      image: base_url <> "/images/dark.jpg"
+      image: base_url <> "/images/og-default.png"
     }
 
-    json_ld = blog_schema(posts) |> encode_schema()
+    json_ld = [blog_schema(posts), website_schema()] |> encode_schema()
 
     %{
       meta: meta,
@@ -99,28 +81,28 @@ defmodule BlogWeb.SEO do
     description = data[:description] || opts[:description] || ""
     path = data[:path] || opts[:path] || "/"
     image = data[:image] || opts[:image]
+    url = base_url <> path
+    resolved_image = image_url(image, base_url)
 
     meta = %{
       title: title,
       description: description,
-      url: base_url <> path,
+      url: url,
+      canonical_url: url,
+      og_url: url,
+      og_image: resolved_image,
+      og_title: title,
+      og_description: description,
       type: "website",
-      image: image_url(image, base_url)
+      image: resolved_image
     }
 
-    %{
-      meta: meta,
-      page_title: title
-    }
+    page_json_ld = data[:json_ld] || opts[:json_ld]
+
+    result = %{meta: meta, page_title: title}
+    if page_json_ld, do: Map.put(result, :json_ld, encode_schema(page_json_ld)), else: result
   end
 
-  @doc """
-  Generates JSON-LD structured data for a blog post (BlogPosting schema).
-
-  ## Example
-      iex> BlogWeb.SEO.blog_posting_schema(note, "https://example.com/item/1")
-      %{...}
-  """
   def blog_posting_schema(note, url) do
     base_url = BlogWeb.Endpoint.url()
 
@@ -143,16 +125,13 @@ defmodule BlogWeb.SEO do
     |> maybe_add_keywords(note.tags)
   end
 
-  @doc """
-  Generates JSON-LD for a Blog schema (for the homepage/list page).
-  """
   def blog_schema(posts) do
     base_url = BlogWeb.Endpoint.url()
 
     %{
       "@context" => "https://schema.org",
       "@type" => "Blog",
-      "name" => "Personal Developer Blog",
+      "name" => "JunHo's Blog",
       "description" => "Elixir, Phoenix, and daily engineering notes.",
       "url" => base_url,
       "publisher" => publisher_schema(),
@@ -160,9 +139,25 @@ defmodule BlogWeb.SEO do
     }
   end
 
-  @doc """
-  Generates BreadcrumbList JSON-LD for navigation paths.
-  """
+  def website_schema do
+    base_url = BlogWeb.Endpoint.url()
+
+    %{
+      "@context" => "https://schema.org",
+      "@type" => "WebSite",
+      "name" => "JunHo's Blog",
+      "url" => base_url,
+      "potentialAction" => %{
+        "@type" => "SearchAction",
+        "target" => %{
+          "@type" => "EntryPoint",
+          "urlTemplate" => base_url <> "/search?query={search_term_string}"
+        },
+        "query-input" => "required name=search_term_string"
+      }
+    }
+  end
+
   def breadcrumb_schema(items) do
     %{
       "@context" => "https://schema.org",
@@ -180,28 +175,18 @@ defmodule BlogWeb.SEO do
     }
   end
 
-  @doc """
-  Generates Person JSON-LD schema for author/profile pages.
-  """
   def person_schema do
     base_url = BlogWeb.Endpoint.url()
 
     %{
       "@context" => "https://schema.org",
       "@type" => "Person",
-      "name" => "Your Name",
-      "url" => base_url,
-      "sameAs" => [
-        # Add your social profiles here
-        # "https://github.com/yourusername",
-        # "https://twitter.com/yourusername"
-      ]
+      "name" => "JunHo Lee",
+      "url" => base_url <> "/about",
+      "sameAs" => []
     }
   end
 
-  @doc """
-  Encodes JSON-LD schema to safe HTML script tag content.
-  """
   def encode_schema(schema) do
     schema
     |> Jason.encode!()
@@ -213,8 +198,7 @@ defmodule BlogWeb.SEO do
   defp author_schema do
     %{
       "@type" => "Person",
-      "name" => "Your Name"
-      # Add "url" or "sameAs" for author's profile page
+      "name" => "JunHo Lee"
     }
   end
 
@@ -222,12 +206,9 @@ defmodule BlogWeb.SEO do
     base_url = BlogWeb.Endpoint.url()
 
     %{
-      "@type" => "Organization",
-      "name" => "Personal Developer Blog",
-      "logo" => %{
-        "@type" => "ImageObject",
-        "url" => base_url <> "/images/dark.jpg"
-      }
+      "@type" => "Person",
+      "name" => "JunHo Lee",
+      "url" => base_url
     }
   end
 
@@ -274,10 +255,15 @@ defmodule BlogWeb.SEO do
   defp excerpt(content, max) do
     content
     |> to_string()
+    |> String.replace(~r/!\[.*?\]\(.*?\)/, "")
+    |> String.replace(~r/\[([^\]]*)\]\([^\)]*\)/, "\\1")
+    |> String.replace(~r/[#*`\[\]()>_~\-|]/, "")
     |> String.replace(~r/\s+/, " ")
+    |> String.trim()
     |> String.slice(0, max)
   end
 
-  defp image_url(nil, base_url), do: base_url <> "/images/dark.jpg"
+  defp image_url(nil, base_url), do: base_url <> "/images/og-default.png"
+  defp image_url("/" <> _ = path, base_url), do: base_url <> path
   defp image_url(path, base_url) when is_binary(path), do: base_url <> "/images/" <> path
 end

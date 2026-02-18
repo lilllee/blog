@@ -49,14 +49,25 @@ defmodule BlogWeb.OGImageGenerator do
     # ImageMagick command to overlay text on template
     System.cmd("magick", [
       @template_path,
-      "-gravity", "center",
-      "-pointsize", "60",
-      "-fill", "white",
-      "-annotate", "+0-100", title,
-      "-pointsize", "30",
-      "-fill", "#94a3b8",
-      "-annotate", "+0+50", tags,
-      "-annotate", "+0+100", date,
+      "-gravity",
+      "center",
+      "-pointsize",
+      "60",
+      "-fill",
+      "white",
+      "-annotate",
+      "+0-100",
+      title,
+      "-pointsize",
+      "30",
+      "-fill",
+      "#94a3b8",
+      "-annotate",
+      "+0+50",
+      tags,
+      "-annotate",
+      "+0+100",
+      date,
       output_path
     ])
     |> case do
@@ -107,6 +118,7 @@ defmodule BlogWeb.OGImageGenerator do
 
   defp format_tags(nil), do: ""
   defp format_tags(""), do: ""
+
   defp format_tags(tags) when is_binary(tags) do
     tags
     |> String.split(",", trim: true)

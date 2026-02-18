@@ -34,12 +34,14 @@ defmodule BlogWeb.MusicPlayerComponent do
             disabled={is_nil(@current_track)}
           >
             <span data-player-icon-play><.icon name="hero-play-solid" class="h-5 w-5" /></span>
-            <span data-player-icon-pause class="hidden"><.icon name="hero-pause-solid" class="h-5 w-5" /></span>
+            <span data-player-icon-pause class="hidden">
+              <.icon name="hero-pause-solid" class="h-5 w-5" />
+            </span>
           </button>
 
           <div class="min-w-0 flex-1">
             <p class="truncate text-sm font-semibold text-foreground">
-              <%= @current_track && @current_track.title || "No tracks yet" %>
+              <%= (@current_track && @current_track.title) || "No tracks yet" %>
             </p>
             <div class="mt-2 h-1 w-full rounded-full bg-muted">
               <div data-player-progress class="h-full w-0 rounded-full bg-foreground/60"></div>
@@ -60,7 +62,7 @@ defmodule BlogWeb.MusicPlayerComponent do
           <div class="flex items-start justify-between">
             <div class="min-w-0">
               <p class="truncate text-sm font-semibold text-foreground">
-                <%= @current_track && @current_track.title || "No track selected" %>
+                <%= (@current_track && @current_track.title) || "No track selected" %>
               </p>
               <p class="mt-1 text-xs text-muted-foreground">
                 <span data-player-current-time>0:00</span> / <span data-player-duration>--:--</span>
@@ -107,7 +109,9 @@ defmodule BlogWeb.MusicPlayerComponent do
               disabled={is_nil(@current_track)}
             >
               <span data-player-icon-play><.icon name="hero-play-solid" class="h-5 w-5" /></span>
-              <span data-player-icon-pause class="hidden"><.icon name="hero-pause-solid" class="h-5 w-5" /></span>
+              <span data-player-icon-pause class="hidden">
+                <.icon name="hero-pause-solid" class="h-5 w-5" />
+              </span>
             </button>
 
             <button
@@ -127,7 +131,8 @@ defmodule BlogWeb.MusicPlayerComponent do
               class={[
                 "inline-flex h-9 w-9 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20",
                 @repeat_mode == "all" && "border-foreground/50 text-foreground",
-                @repeat_mode != "all" && "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                @repeat_mode != "all" &&
+                  "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
               ]}
             >
               <.icon name="hero-arrow-path-solid" class="h-4 w-4" />
@@ -140,7 +145,8 @@ defmodule BlogWeb.MusicPlayerComponent do
               class={[
                 "inline-flex h-9 w-9 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20",
                 @shuffle_enabled && "border-foreground/50 text-foreground",
-                !@shuffle_enabled && "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                !@shuffle_enabled &&
+                  "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
               ]}
             >
               <.icon name="hero-arrows-right-left-solid" class="h-4 w-4" />
@@ -155,8 +161,12 @@ defmodule BlogWeb.MusicPlayerComponent do
               class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20"
               disabled={is_nil(@current_track)}
             >
-              <span data-player-icon-volume><.icon name="hero-speaker-wave-solid" class="h-4 w-4" /></span>
-              <span data-player-icon-muted class="hidden"><.icon name="hero-speaker-x-mark-solid" class="h-4 w-4" /></span>
+              <span data-player-icon-volume>
+                <.icon name="hero-speaker-wave-solid" class="h-4 w-4" />
+              </span>
+              <span data-player-icon-muted class="hidden">
+                <.icon name="hero-speaker-x-mark-solid" class="h-4 w-4" />
+              </span>
             </button>
 
             <input
@@ -172,7 +182,9 @@ defmodule BlogWeb.MusicPlayerComponent do
           </div>
 
           <div class="space-y-2">
-            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground/60">Playlist</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground/60">
+              Playlist
+            </p>
             <div class="max-h-40 space-y-1 overflow-auto pr-1">
               <button
                 :for={track <- @tracks}
@@ -185,7 +197,8 @@ defmodule BlogWeb.MusicPlayerComponent do
                 class={[
                   "flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20",
                   track.id == @current_track_id && "bg-muted text-foreground",
-                  track.id != @current_track_id && "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                  track.id != @current_track_id &&
+                    "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                 ]}
                 aria-current={track.id == @current_track_id && "true"}
               >

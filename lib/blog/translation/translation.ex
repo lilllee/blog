@@ -20,7 +20,13 @@ defmodule Blog.Translation.Translation do
   def changeset(translation, attrs) do
     translation
     |> cast(attrs, [:content_hash, :source_lang, :target_lang, :original_text, :translated_text])
-    |> validate_required([:content_hash, :source_lang, :target_lang, :original_text, :translated_text])
+    |> validate_required([
+      :content_hash,
+      :source_lang,
+      :target_lang,
+      :original_text,
+      :translated_text
+    ])
     |> validate_inclusion(:source_lang, @supported_languages)
     |> validate_inclusion(:target_lang, @supported_languages)
     |> unique_constraint([:content_hash, :target_lang])

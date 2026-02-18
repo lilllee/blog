@@ -26,10 +26,11 @@ defmodule Blog.Translation.GeminiClient do
 
     prompt = build_prompt(text, source_lang, target_lang)
 
-    body = Jason.encode!(%{
-      contents: [%{parts: [%{text: prompt}]}],
-      generationConfig: %{temperature: 0.1, maxOutputTokens: 8192}
-    })
+    body =
+      Jason.encode!(%{
+        contents: [%{parts: [%{text: prompt}]}],
+        generationConfig: %{temperature: 0.1, maxOutputTokens: 8192}
+      })
 
     request = Finch.build(:post, url, [{"content-type", "application/json"}], body)
 

@@ -3,6 +3,7 @@ defmodule BlogWeb.HomeLive do
 
   alias Blog.NoteData
   alias Blog.Translation
+  alias BlogWeb.SEO
 
   @impl true
   def render(assigns) do
@@ -34,7 +35,8 @@ defmodule BlogWeb.HomeLive do
                 "rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap",
                 if(@selected_tag == "",
                   do: "bg-foreground text-background",
-                  else: "border border-border bg-secondary text-muted-foreground hover:bg-accent hover:text-foreground"
+                  else:
+                    "border border-border bg-secondary text-muted-foreground hover:bg-accent hover:text-foreground"
                 )
               ]}
             >
@@ -50,7 +52,8 @@ defmodule BlogWeb.HomeLive do
                 "rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap",
                 if(@selected_tag == tag,
                   do: "bg-foreground text-background",
-                  else: "border border-border bg-secondary text-muted-foreground hover:bg-accent hover:text-foreground"
+                  else:
+                    "border border-border bg-secondary text-muted-foreground hover:bg-accent hover:text-foreground"
                 )
               ]}
             >
@@ -63,7 +66,10 @@ defmodule BlogWeb.HomeLive do
       <%!-- Post list --%>
       <div class="mt-6">
         <article :for={post <- @posts} class="group">
-          <.link navigate={~p"/posts/#{post.slug}"} class="block -mx-3 px-3 py-6 rounded-lg transition-colors card-hover border-b border-border last:border-b-0">
+          <.link
+            navigate={~p"/posts/#{post.slug}"}
+            class="block -mx-3 px-3 py-6 rounded-lg transition-colors card-hover border-b border-border last:border-b-0"
+          >
             <div class="flex gap-4">
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2.5 min-h-[20px]">
@@ -71,7 +77,10 @@ defmodule BlogWeb.HomeLive do
                     <%= format_date(post.published_at || post.inserted_at) %>
                   </time>
                   <span :if={first_tag(post.tags)} class="text-muted-foreground/30">/</span>
-                  <span :if={first_tag(post.tags)} class="text-xs font-medium text-muted-foreground/70">
+                  <span
+                    :if={first_tag(post.tags)}
+                    class="text-xs font-medium text-muted-foreground/70"
+                  >
                     <%= first_tag(post.tags) %>
                   </span>
                 </div>
@@ -85,7 +94,9 @@ defmodule BlogWeb.HomeLive do
               <div :if={post.image_path} class="hidden sm:block flex-shrink-0 mt-1">
                 <img
                   src={"/images/" <> post.image_path}
-                  alt=""
+                  alt={post.title}
+                  width="112"
+                  height="80"
                   class="h-20 w-28 rounded-md object-cover"
                   loading="lazy"
                 />
@@ -109,20 +120,20 @@ defmodule BlogWeb.HomeLive do
     all_tags = NoteData.list_tags()
     posts = NoteData.list_notes()
 
+    seo =
+      SEO.seo_assigns(:blog, posts,
+        title: "JunHo's Blog",
+        description: Translation.t("subtitle", locale)
+      )
+
     socket =
-      assign(socket,
+      socket
+      |> assign(seo)
+      |> assign(
         posts: posts,
         original_posts: posts,
         all_tags: all_tags,
-        selected_tag: "",
-        page_title: "JunHo's Blog",
-        meta: %{
-          title: "JunHo's Blog",
-          description: Translation.t("subtitle", locale),
-          og_title: "JunHo's Blog",
-          og_description: Translation.t("subtitle", locale),
-          og_type: "website"
-        }
+        selected_tag: ""
       )
 
     if locale != "ko" and connected?(socket) do

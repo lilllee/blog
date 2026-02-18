@@ -78,7 +78,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
 
           <h1 class="text-2xl font-bold text-foreground">Edit About Page</h1>
         </div>
-        
+
         <div class="flex gap-3">
           <.link
             navigate={~p"/about"}
@@ -127,7 +127,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
               <.additional_section resume_data={@resume_data} />
           <% end %>
         </div>
-        
+
         <div class="flex justify-end">
           <.button type="submit">Save changes</.button>
         </div>
@@ -161,7 +161,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
     ~H"""
     <div class="space-y-4">
       <h3 class="text-lg font-semibold text-foreground">Contact Information</h3>
-       <.input type="text" name="resume[header][name]" label="Name" value={header["name"]} />
+      <.input type="text" name="resume[header][name]" label="Name" value={header["name"]} />
       <.input
         type="text"
         name="resume[header][title]"
@@ -172,7 +172,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
         <.input type="email" name="resume[header][email]" label="Email" value={header["email"]} />
         <.input type="text" name="resume[header][phone]" label="Phone" value={header["phone"]} />
       </div>
-      
+
       <.input type="text" name="resume[header][location]" label="Location" value={header["location"]} />
       <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
         <.input
@@ -199,11 +199,11 @@ defmodule BlogWeb.Admin.AboutEditLive do
     ~H"""
     <div class="space-y-4">
       <h3 class="text-lg font-semibold text-foreground">Professional Summary</h3>
-      
+
       <p class="text-sm text-muted-foreground">
         Write a brief professional summary using Markdown formatting.
       </p>
-      
+
       <.input
         type="textarea"
         name="resume[additional][summary_md]"
@@ -221,14 +221,14 @@ defmodule BlogWeb.Admin.AboutEditLive do
     ~H"""
     <div class="space-y-4">
       <h3 class="text-lg font-semibold text-foreground">Skills</h3>
-      
+
       <p class="text-sm text-muted-foreground">
         Edit as JSON array. Format:
         <code class="bg-muted px-1 rounded">
           [{"category": "Languages", "items": ["Elixir", "Python"]}]
         </code>
       </p>
-      
+
       <.input
         type="textarea"
         name="resume[skills]"
@@ -246,14 +246,14 @@ defmodule BlogWeb.Admin.AboutEditLive do
     ~H"""
     <div class="space-y-4">
       <h3 class="text-lg font-semibold text-foreground">Work Experience</h3>
-      
+
       <p class="text-sm text-muted-foreground">
         Edit as JSON array. Format:
         <code class="bg-muted px-1 rounded text-xs">
           [{"company": "...", "position": "...", "start_date": "...", "end_date": "...", "description_md": "...", "location": "..."}]
         </code>
       </p>
-      
+
       <.input
         type="textarea"
         name="resume[experience]"
@@ -271,14 +271,14 @@ defmodule BlogWeb.Admin.AboutEditLive do
     ~H"""
     <div class="space-y-4">
       <h3 class="text-lg font-semibold text-foreground">Projects</h3>
-      
+
       <p class="text-sm text-muted-foreground">
         Edit as JSON array. Format:
         <code class="bg-muted px-1 rounded text-xs">
           [{"name": "...", "url": "...", "description_md": "...", "tech_stack": ["...", "..."]}]
         </code>
       </p>
-      
+
       <.input
         type="textarea"
         name="resume[projects]"
@@ -296,14 +296,14 @@ defmodule BlogWeb.Admin.AboutEditLive do
     ~H"""
     <div class="space-y-4">
       <h3 class="text-lg font-semibold text-foreground">Education</h3>
-      
+
       <p class="text-sm text-muted-foreground">
         Edit as JSON array. Format:
         <code class="bg-muted px-1 rounded text-xs">
           [{"school": "...", "degree": "...", "field": "...", "start_date": "...", "end_date": "...", "description_md": "..."}]
         </code>
       </p>
-      
+
       <.input
         type="textarea"
         name="resume[education]"
@@ -324,12 +324,12 @@ defmodule BlogWeb.Admin.AboutEditLive do
     ~H"""
     <div class="space-y-6">
       <h3 class="text-lg font-semibold text-foreground">Additional Information</h3>
-      
+
       <div>
         <p class="text-sm text-muted-foreground mb-2">
           Certifications (JSON array of strings)
         </p>
-        
+
         <.input
           type="textarea"
           name="resume[additional][certifications]"
@@ -338,12 +338,12 @@ defmodule BlogWeb.Admin.AboutEditLive do
           class="min-h-[100px] font-mono text-sm"
         />
       </div>
-      
+
       <div>
         <p class="text-sm text-muted-foreground mb-2">
           Languages (JSON array of strings)
         </p>
-        
+
         <.input
           type="textarea"
           name="resume[additional][languages]"
@@ -352,12 +352,12 @@ defmodule BlogWeb.Admin.AboutEditLive do
           class="min-h-[100px] font-mono text-sm"
         />
       </div>
-      
+
       <div>
         <p class="text-sm text-muted-foreground mb-2">
           Interests (JSON array of strings)
         </p>
-        
+
         <.input
           type="textarea"
           name="resume[additional][interests]"

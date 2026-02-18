@@ -11,18 +11,44 @@ defmodule BlogWeb.NoteLive do
     ~H"""
     <div>
       <%!-- Translation loading indicator --%>
-      <div :if={@translating} class="fixed top-16 right-6 z-50 flex items-center gap-2 rounded-lg bg-background border border-border px-3 py-2 shadow-lg">
-        <svg class="h-4 w-4 animate-spin text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      <div
+        :if={@translating}
+        class="fixed top-16 right-6 z-50 flex items-center gap-2 rounded-lg bg-background border border-border px-3 py-2 shadow-lg"
+      >
+        <svg
+          class="h-4 w-4 animate-spin text-muted-foreground"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+          </circle>
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          >
+          </path>
         </svg>
         <span class="text-xs text-muted-foreground">Translating...</span>
       </div>
 
       <%!-- Back link --%>
-      <.link navigate={~p"/"} class="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
-          <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+      <.link
+        navigate={~p"/"}
+        class="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          class="h-4 w-4"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+            clip-rule="evenodd"
+          />
         </svg>
         <%= Translation.t("back_to_list", @locale) %>
       </.link>
@@ -52,10 +78,7 @@ defmodule BlogWeb.NoteLive do
           </header>
 
           <%!-- Cover image --%>
-          <div
-            :if={@image_path}
-            class="mt-10 overflow-hidden rounded-lg"
-          >
+          <div :if={@image_path} class="mt-10 overflow-hidden rounded-lg">
             <img
               phx-track-static
               src={"/images/" <> @image_path}
@@ -79,10 +102,14 @@ defmodule BlogWeb.NoteLive do
             :if={@series_prev || @series_next}
             class="mt-10 rounded-lg border border-border/50 p-5"
           >
-            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground/60"><%= Translation.t("series_nav", @locale) %></p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground/60">
+              <%= Translation.t("series_nav", @locale) %>
+            </p>
             <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div :if={@series_prev} class="flex flex-col gap-1">
-                <span class="text-xs text-muted-foreground/50"><%= Translation.t("prev", @locale) %></span>
+                <span class="text-xs text-muted-foreground/50">
+                  <%= Translation.t("prev", @locale) %>
+                </span>
                 <.link
                   navigate={~p"/posts/#{@series_prev.slug}"}
                   class="text-sm font-medium text-foreground hover:text-muted-foreground transition-colors"
@@ -91,7 +118,9 @@ defmodule BlogWeb.NoteLive do
                 </.link>
               </div>
               <div :if={@series_next} class="flex flex-col gap-1 sm:ml-auto sm:text-right">
-                <span class="text-xs text-muted-foreground/50"><%= Translation.t("next", @locale) %></span>
+                <span class="text-xs text-muted-foreground/50">
+                  <%= Translation.t("next", @locale) %>
+                </span>
                 <.link
                   navigate={~p"/posts/#{@series_next.slug}"}
                   class="text-sm font-medium text-foreground hover:text-muted-foreground transition-colors"
@@ -103,17 +132,16 @@ defmodule BlogWeb.NoteLive do
           </section>
 
           <%!-- Chronological navigation --%>
-          <nav
-            :if={@chrono_prev || @chrono_next}
-            class="mt-10 grid grid-cols-2 gap-4"
-          >
+          <nav :if={@chrono_prev || @chrono_next} class="mt-10 grid grid-cols-2 gap-4">
             <div>
               <.link
                 :if={@chrono_prev}
                 navigate={~p"/posts/#{@chrono_prev.slug}"}
                 class="group block rounded-lg border border-border/50 p-4 transition-colors hover:bg-muted"
               >
-                <span class="text-xs text-muted-foreground"><%= Translation.t("prev", @locale) %></span>
+                <span class="text-xs text-muted-foreground">
+                  <%= Translation.t("prev", @locale) %>
+                </span>
                 <p class="mt-1 text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors line-clamp-2">
                   <%= @chrono_prev.title %>
                 </p>
@@ -125,7 +153,9 @@ defmodule BlogWeb.NoteLive do
                 navigate={~p"/posts/#{@chrono_next.slug}"}
                 class="group block rounded-lg border border-border/50 p-4 transition-colors hover:bg-muted"
               >
-                <span class="text-xs text-muted-foreground"><%= Translation.t("next", @locale) %></span>
+                <span class="text-xs text-muted-foreground">
+                  <%= Translation.t("next", @locale) %>
+                </span>
                 <p class="mt-1 text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors line-clamp-2">
                   <%= @chrono_next.title %>
                 </p>
@@ -135,7 +165,9 @@ defmodule BlogWeb.NoteLive do
 
           <%!-- Related posts --%>
           <section :if={@related != []} class="mt-10 pt-10 border-t border-border/50">
-            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground/60"><%= Translation.t("related_posts", @locale) %></p>
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
+              <%= Translation.t("related_posts", @locale) %>
+            </p>
             <div class="mt-6 divide-y divide-border/50">
               <%= for rel <- @related do %>
                 <.link navigate={~p"/posts/#{rel.slug}"} class="group block py-4 first:pt-0">
@@ -203,6 +235,25 @@ defmodule BlogWeb.NoteLive do
         %{prev: chrono_prev, next: chrono_next} = NoteData.chronological_neighbors(note)
 
         seo = SEO.seo_assigns(:post, note)
+
+        # Add breadcrumb JSON-LD alongside BlogPosting
+        base_url = BlogWeb.Endpoint.url()
+
+        breadcrumb =
+          SEO.breadcrumb_schema([
+            {"Home", base_url},
+            {"Posts", base_url <> "/"},
+            {note.title, base_url <> "/posts/#{note.slug}"}
+          ])
+
+        combined_json_ld =
+          [
+            SEO.blog_posting_schema(note, base_url <> "/posts/#{note.slug}"),
+            breadcrumb
+          ]
+          |> SEO.encode_schema()
+
+        seo = Map.put(seo, :json_ld, combined_json_ld)
 
         socket =
           socket
