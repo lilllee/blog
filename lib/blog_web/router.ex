@@ -36,6 +36,7 @@ defmodule BlogWeb.Router do
     get "/rss.xml", FeedController, :rss
     get "/sitemap.xml", FeedController, :sitemap
     get "/robots.txt", FeedController, :robots
+    get "/uploads/audio/*path", UploadController, :audio
 
     # Legacy redirects
     get "/posts", RedirectController, :posts_index

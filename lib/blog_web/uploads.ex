@@ -45,7 +45,7 @@ defmodule BlogWeb.Uploads do
   end
 
   def audio_dir! do
-    dir = Path.join([priv_dir(), @audio_subdir])
+    dir = resolve_audio_dir()
     File.mkdir_p!(dir)
     dir
   end
@@ -59,5 +59,36 @@ defmodule BlogWeb.Uploads do
   defp unique_filename(ext) do
     token = :crypto.strong_rand_bytes(16) |> Base.encode16(case: :lower)
     token <> ext
+  end
+
+  defp resolve_audio_dir do
+    case System.get_env("AUDIO_UPLOADS_DIR") do
+      nil ->
+        default_audio_dir()
+
+      "" ->
+        default_audio_dir()
+
+      path ->
+        path
+    end
+  end
+
+  defp default_audio_dir do
+    case System.get_env("DATABASE_PATH") do
+      path when is_binary(path) and path != "" ->
+        expanded_path = Path.expand(path)
+
+        if String.starts_with?(expanded_path, "/mnt/") do
+          expanded_path
+          |> Path.dirname()
+          |> Path.join(Path.join("uploads", "audio"))
+        else
+          Path.join([priv_dir(), @audio_subdir])
+        end
+
+      _ ->
+        Path.join([priv_dir(), @audio_subdir])
+    end
   end
 end
