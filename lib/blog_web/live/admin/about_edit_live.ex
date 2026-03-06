@@ -156,37 +156,37 @@ defmodule BlogWeb.Admin.AboutEditLive do
   end
 
   defp header_section(assigns) do
-    header = assigns.resume_data[:header] || %{}
+    assigns = assign(assigns, :header, assigns.resume_data[:header] || %{})
 
     ~H"""
     <div class="space-y-4">
       <h3 class="text-lg font-semibold text-foreground">Contact Information</h3>
-      <.input type="text" name="resume[header][name]" label="Name" value={header["name"]} />
+      <.input type="text" name="resume[header][name]" label="Name" value={@header["name"]} />
       <.input
         type="text"
         name="resume[header][title]"
         label="Professional Title"
-        value={header["title"]}
+        value={@header["title"]}
       />
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <.input type="email" name="resume[header][email]" label="Email" value={header["email"]} />
-        <.input type="text" name="resume[header][phone]" label="Phone" value={header["phone"]} />
+        <.input type="email" name="resume[header][email]" label="Email" value={@header["email"]} />
+        <.input type="text" name="resume[header][phone]" label="Phone" value={@header["phone"]} />
       </div>
 
-      <.input type="text" name="resume[header][location]" label="Location" value={header["location"]} />
+      <.input type="text" name="resume[header][location]" label="Location" value={@header["location"]} />
       <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
         <.input
           type="url"
           name="resume[header][linkedin]"
           label="LinkedIn URL"
-          value={header["linkedin"]}
+          value={@header["linkedin"]}
         />
-        <.input type="url" name="resume[header][github]" label="GitHub URL" value={header["github"]} />
+        <.input type="url" name="resume[header][github]" label="GitHub URL" value={@header["github"]} />
         <.input
           type="url"
           name="resume[header][website]"
           label="Website URL"
-          value={header["website"]}
+          value={@header["website"]}
         />
       </div>
     </div>
@@ -194,7 +194,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
   end
 
   defp summary_section(assigns) do
-    additional = assigns.resume_data[:additional] || %{}
+    assigns = assign(assigns, :additional, assigns.resume_data[:additional] || %{})
 
     ~H"""
     <div class="space-y-4">
@@ -208,7 +208,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
         type="textarea"
         name="resume[additional][summary_md]"
         label="Summary (Markdown)"
-        value={additional["summary_md"]}
+        value={@additional["summary_md"]}
         class="min-h-[200px] font-mono"
       />
     </div>
@@ -216,7 +216,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
   end
 
   defp skills_section(assigns) do
-    skills = assigns.resume_data[:skills] || []
+    assigns = assign(assigns, :skills, assigns.resume_data[:skills] || [])
 
     ~H"""
     <div class="space-y-4">
@@ -233,7 +233,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
         type="textarea"
         name="resume[skills]"
         label="Skills (JSON)"
-        value={Jason.encode!(skills, pretty: true)}
+        value={Jason.encode!(@skills, pretty: true)}
         class="min-h-[300px] font-mono text-sm"
       />
     </div>
@@ -241,7 +241,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
   end
 
   defp experience_section(assigns) do
-    experience = assigns.resume_data[:experience] || []
+    assigns = assign(assigns, :experience, assigns.resume_data[:experience] || [])
 
     ~H"""
     <div class="space-y-4">
@@ -258,7 +258,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
         type="textarea"
         name="resume[experience]"
         label="Experience (JSON)"
-        value={Jason.encode!(experience, pretty: true)}
+        value={Jason.encode!(@experience, pretty: true)}
         class="min-h-[400px] font-mono text-sm"
       />
     </div>
@@ -266,7 +266,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
   end
 
   defp projects_section(assigns) do
-    projects = assigns.resume_data[:projects] || []
+    assigns = assign(assigns, :projects, assigns.resume_data[:projects] || [])
 
     ~H"""
     <div class="space-y-4">
@@ -283,7 +283,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
         type="textarea"
         name="resume[projects]"
         label="Projects (JSON)"
-        value={Jason.encode!(projects, pretty: true)}
+        value={Jason.encode!(@projects, pretty: true)}
         class="min-h-[400px] font-mono text-sm"
       />
     </div>
@@ -291,7 +291,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
   end
 
   defp education_section(assigns) do
-    education = assigns.resume_data[:education] || []
+    assigns = assign(assigns, :education, assigns.resume_data[:education] || [])
 
     ~H"""
     <div class="space-y-4">
@@ -308,7 +308,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
         type="textarea"
         name="resume[education]"
         label="Education (JSON)"
-        value={Jason.encode!(education, pretty: true)}
+        value={Jason.encode!(@education, pretty: true)}
         class="min-h-[300px] font-mono text-sm"
       />
     </div>
@@ -317,9 +317,13 @@ defmodule BlogWeb.Admin.AboutEditLive do
 
   defp additional_section(assigns) do
     additional = assigns.resume_data[:additional] || %{}
-    certs = additional["certifications"] || []
-    langs = additional["languages"] || []
-    interests = additional["interests"] || []
+
+    assigns =
+      assigns
+      |> assign(:additional, additional)
+      |> assign(:certs, additional["certifications"] || [])
+      |> assign(:langs, additional["languages"] || [])
+      |> assign(:interests, additional["interests"] || [])
 
     ~H"""
     <div class="space-y-6">
@@ -334,7 +338,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
           type="textarea"
           name="resume[additional][certifications]"
           label="Certifications"
-          value={Jason.encode!(certs, pretty: true)}
+          value={Jason.encode!(@certs, pretty: true)}
           class="min-h-[100px] font-mono text-sm"
         />
       </div>
@@ -348,7 +352,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
           type="textarea"
           name="resume[additional][languages]"
           label="Languages"
-          value={Jason.encode!(langs, pretty: true)}
+          value={Jason.encode!(@langs, pretty: true)}
           class="min-h-[100px] font-mono text-sm"
         />
       </div>
@@ -362,7 +366,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
           type="textarea"
           name="resume[additional][interests]"
           label="Interests"
-          value={Jason.encode!(interests, pretty: true)}
+          value={Jason.encode!(@interests, pretty: true)}
           class="min-h-[100px] font-mono text-sm"
         />
       </div>

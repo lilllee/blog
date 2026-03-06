@@ -29,7 +29,6 @@ defmodule Blog.ResumeData do
 
   """
 
-  import Ecto.Query
   alias Blog.Resume
   alias Blog.Repo
 

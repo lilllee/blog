@@ -69,6 +69,7 @@ defmodule BlogWeb.MusicManageLive do
     end
   end
 
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="mx-auto w-full max-w-3xl space-y-6 px-6 py-10 text-slate-100">
