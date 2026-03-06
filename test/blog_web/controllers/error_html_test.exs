@@ -5,10 +5,18 @@ defmodule BlogWeb.ErrorHTMLTest do
   import Phoenix.Template
 
   test "renders 404.html" do
-    assert render_to_string(BlogWeb.ErrorHTML, "404", "html", []) == "Not Found"
+    html = render_to_string(BlogWeb.ErrorHTML, "404", "html", [])
+
+    assert html =~ "404 - Page Not Found"
+    assert html =~ "Page not found"
+    assert html =~ "Back to home"
   end
 
   test "renders 500.html" do
-    assert render_to_string(BlogWeb.ErrorHTML, "500", "html", []) == "Internal Server Error"
+    html = render_to_string(BlogWeb.ErrorHTML, "500", "html", [])
+
+    assert html =~ "500 - Server Error"
+    assert html =~ "Something went wrong"
+    assert html =~ "Back to home"
   end
 end
