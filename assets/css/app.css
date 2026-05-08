@@ -1,54 +1,46 @@
-/* Self-hosted Inter font */
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/inter-400.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/inter-700.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+/* Terminal palette — light & dark variants from JunHo's Blog v2 (Terminal). */
 :root {
-  --background: #fafafa;
-  --foreground: #262626;
-  --card: #ffffff;
-  --muted: #f5f5f5;
-  --muted-foreground: #737373;
-  --border: #e5e5e5;
-  --secondary: #f5f5f5;
-  --secondary-foreground: #262626;
-  --accent: #f5f5f5;
-  --accent-foreground: #262626;
-  --primary: #262626;
-  --primary-foreground: #fafafa;
+  --background: #f5f3ee;
+  --foreground: #1a1814;
+  --card: #ebe6d8;
+  --muted: #ebe6d8;
+  --muted-foreground: #7a7264;
+  --border: #d8d2c2;
+  --secondary: #ebe6d8;
+  --secondary-foreground: #1a1814;
+  --accent: #ebe6d8;
+  --accent-foreground: #1a1814;
+  --primary: #1a1814;
+  --primary-foreground: #f5f3ee;
+
+  --tm-accent: #a8590e;
+  --tm-blue: #2563b8;
+  --tm-green: #1f7d4a;
+  --tm-chrome: #ebe6d8;
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --card: #141414;
-  --muted: #1a1a1a;
-  --muted-foreground: #a0a0a0;
-  --border: #262626;
-  --secondary: #1a1a1a;
-  --secondary-foreground: #ededed;
-  --accent: #1a1a1a;
-  --accent-foreground: #ededed;
-  --primary: #ededed;
-  --primary-foreground: #0a0a0a;
+  --background: #191714;
+  --foreground: #ece6d4;
+  --card: #221e1a;
+  --muted: #221e1a;
+  --muted-foreground: #7e7565;
+  --border: #2c2823;
+  --secondary: #221e1a;
+  --secondary-foreground: #ece6d4;
+  --accent: #221e1a;
+  --accent-foreground: #ece6d4;
+  --primary: #ece6d4;
+  --primary-foreground: #191714;
+
+  --tm-accent: #e0a14a;
+  --tm-blue: #7eb8e0;
+  --tm-green: #9ad17a;
+  --tm-chrome: #221e1a;
 }
 
 @layer base {
@@ -56,9 +48,20 @@
     border-color: var(--border);
   }
 
+  html, body {
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
   body {
     background-color: var(--background);
     color: var(--foreground);
+  }
+
+  ::selection {
+    background-color: var(--tm-accent);
+    color: var(--background);
   }
 }
 
@@ -77,103 +80,172 @@
     overflow: hidden;
   }
 
-  .text-balance {
-    text-wrap: balance;
-  }
-
-  .text-pretty {
-    text-wrap: pretty;
-  }
+  .text-balance { text-wrap: balance; }
+  .text-pretty { text-wrap: pretty; }
 }
 
-/* Markdown article body styling */
+/* Terminal palette utilities (always kept; not subject to Tailwind purge). */
+.text-tm-accent { color: var(--tm-accent); }
+.text-tm-blue { color: var(--tm-blue); }
+.text-tm-green { color: var(--tm-green); }
+.bg-tm-chrome { background-color: var(--tm-chrome); }
+.border-tm-rule { border-color: var(--border); }
+
+/* Terminal window chrome dots. */
+.tm-dot { width: 11px; height: 11px; border-radius: 9999px; display: inline-block; }
+.tm-dot--red { background: #ff5f57; }
+.tm-dot--yellow { background: #febc2e; }
+.tm-dot--green { background: #28c840; }
+
+/* Hover states from the prototype. */
+.tm-link { transition: color 0.15s; }
+.tm-link:hover { color: var(--tm-accent) !important; }
+.tm-row { transition: background-color 0.15s; }
+.tm-row:hover { background-color: var(--tm-chrome); }
+
+.tm-banner {
+  white-space: pre;
+  font-size: 12px;
+  line-height: 1.2;
+  color: var(--tm-accent);
+  margin: 0;
+}
+
+/* Markdown article body — terminal style. */
 .prose-blog {
-  line-height: 1.8;
+  line-height: 1.75;
+  font-size: 14px;
+  color: var(--foreground);
 }
 
 .prose-blog p {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.125rem;
 }
 
 .prose-blog h1,
 .prose-blog h2,
 .prose-blog h3 {
   font-weight: 700;
-  letter-spacing: -0.025em;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
+  letter-spacing: -0.01em;
 }
 
-.prose-blog h1 { font-size: 1.875rem; }
-.prose-blog h2 { font-size: 1.5rem; }
-.prose-blog h3 { font-size: 1.25rem; }
+.prose-blog h1 {
+  font-size: 1.625rem;
+  line-height: 1.25;
+  color: var(--foreground);
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose-blog h2 {
+  font-size: 1.125rem;
+  color: var(--tm-accent);
+  margin-top: 2.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose-blog h2::before { content: "## "; }
+
+.prose-blog h3 {
+  font-size: 0.9375rem;
+  color: var(--tm-blue);
+  margin-top: 1.5rem;
+  margin-bottom: 0.625rem;
+}
+
+.prose-blog h3::before { content: "### "; }
 
 .prose-blog pre {
-  background-color: var(--muted);
+  background-color: var(--tm-chrome);
   border: 1px solid var(--border);
-  border-radius: 0.5rem;
   padding: 1rem;
+  margin: 0 0 1rem 0;
   overflow-x: auto;
-  margin-bottom: 1.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--tm-green);
+  border-radius: 0;
+}
+
+.prose-blog pre + pre,
+.prose-blog .tm-code-header + pre {
+  border-top: none;
 }
 
 .prose-blog code {
+  font-family: inherit;
   font-size: 0.875rem;
 }
 
 .prose-blog :not(pre) > code {
-  background-color: var(--muted);
+  background-color: var(--tm-chrome);
   padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
+  color: var(--tm-green);
 }
 
 .prose-blog a {
+  color: var(--tm-accent);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .prose-blog a:hover {
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .prose-blog ul,
 .prose-blog ol {
   padding-left: 1.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.125rem;
 }
 
-.prose-blog li {
-  margin-bottom: 0.5rem;
+.prose-blog ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.prose-blog ul > li {
+  position: relative;
+  padding-left: 1.25rem;
+  margin-bottom: 0.375rem;
+}
+
+.prose-blog ul > li::before {
+  content: "·";
+  position: absolute;
+  left: 0.25rem;
+  color: var(--muted-foreground);
+}
+
+.prose-blog ol > li {
+  margin-bottom: 0.375rem;
 }
 
 .prose-blog blockquote {
-  border-left: 3px solid var(--border);
+  border-left: 2px dashed var(--border);
   padding-left: 1rem;
-  margin-bottom: 1.5rem;
+  margin: 0 0 1.125rem 0;
   color: var(--muted-foreground);
-  font-style: italic;
+  font-style: normal;
 }
 
 .prose-blog img {
-  border-radius: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.dark .prose-blog img {
   border: 1px solid var(--border);
-  border-radius: 0.5rem;
+  border-radius: 0;
+  margin-bottom: 1.125rem;
 }
 
 .prose-blog hr {
-  border-color: var(--border);
+  border: none;
+  border-top: 1px dashed var(--border);
   margin: 2rem 0;
 }
 
 .prose-blog table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.125rem;
 }
 
 .prose-blog th,
@@ -184,15 +256,19 @@
 }
 
 .prose-blog th {
-  background-color: var(--muted);
+  background-color: var(--tm-chrome);
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
 }
 
-/* Custom utilities */
-.card-hover:hover {
-  background-color: #efefef;
-}
-
-.dark .card-hover:hover {
-  background-color: #1a1a1a;
+/* Cursor blink for prompt. */
+@keyframes tm-blink { 50% { opacity: 0; } }
+.tm-cursor::after {
+  content: "▍";
+  margin-left: 0.125rem;
+  color: var(--tm-accent);
+  animation: tm-blink 1s step-end infinite;
 }

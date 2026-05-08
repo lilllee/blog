@@ -13,7 +13,7 @@ defmodule BlogWeb.NoteLive do
       <%!-- Translation loading indicator --%>
       <div
         :if={@translating}
-        class="fixed top-16 right-6 z-50 flex items-center gap-2 rounded-lg bg-background border border-border px-3 py-2 shadow-lg"
+        class="fixed top-16 right-6 z-50 flex items-center gap-2 border border-border bg-[var(--tm-chrome)] px-3 py-2"
       >
         <svg
           class="h-4 w-4 animate-spin text-muted-foreground"
@@ -33,52 +33,46 @@ defmodule BlogWeb.NoteLive do
         <span class="text-xs text-muted-foreground">Translating...</span>
       </div>
 
-      <%!-- Back link --%>
-      <.link
-        navigate={~p"/"}
-        class="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          class="h-4 w-4"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-            clip-rule="evenodd"
-          />
-        </svg>
-        <%= Translation.t("back_to_list", @locale) %>
-      </.link>
-
       <%= if @note do %>
-        <article class="mt-10">
-          <%!-- Article header --%>
-          <header class="pb-10 border-b border-border/50">
-            <div class="flex items-center gap-2.5 flex-wrap">
-              <time class="text-xs font-medium tracking-wide text-muted-foreground/70">
-                <%= @published_on %>
-              </time>
-              <%= for tag <- @tags do %>
-                <span class="text-muted-foreground/30">/</span>
-                <span class="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-                  <%= tag %>
-                </span>
-              <% end %>
-              <span :if={@reading_time > 0} class="text-muted-foreground/30">&middot;</span>
-              <span :if={@reading_time > 0} class="text-xs font-medium text-muted-foreground">
-                <%= @reading_time %> min read
-              </span>
-            </div>
-            <h1 class="mt-4 text-3xl font-bold tracking-tight text-foreground leading-tight text-balance">
-              <%= @title %>
-            </h1>
-          </header>
+        <%!-- ← cd .. --%>
+        <.link
+          navigate={~p"/"}
+          class="tm-link inline-block pt-5 pb-2 text-[13px] text-muted-foreground"
+        >
+          ← cd ..
+        </.link>
+
+        <%!-- $ cat slug.md --%>
+        <div class="flex flex-wrap items-center gap-2.5 pt-2 pb-3 text-sm">
+          <span class="text-tm-accent">junho</span>
+          <span class="text-tm-blue">~/blog/posts</span>
+          <span class="text-muted-foreground">$</span>
+          <span class="text-foreground">cat <%= @note.slug %>.md</span>
+        </div>
+
+        <hr class="my-5 border-0 border-t border-dashed border-border" />
+
+        <article>
+          <%!-- Date · tag · reading time --%>
+          <div class="py-3 text-xs text-muted-foreground">
+            <%= @published_on %>
+            <%= if @tags != [] do %>
+              <span> · </span>
+              <span class="text-tm-blue"><%= @tags |> List.first() |> String.downcase() %></span>
+            <% end %>
+            <%= if @reading_time > 0 do %>
+              <span> · </span>
+              <span><%= @reading_time %> min read</span>
+            <% end %>
+          </div>
+
+          <%!-- # title --%>
+          <h1 class="mt-3 text-[26px] leading-tight font-bold tracking-tight text-foreground text-balance">
+            <span class="text-tm-accent">#</span> <%= @title %>
+          </h1>
 
           <%!-- Cover image --%>
-          <div :if={@image_path} class="mt-10 overflow-hidden rounded-lg">
+          <div :if={@image_path} class="mt-6 border border-border">
             <img
               phx-track-static
               src={"/images/" <> @image_path}
@@ -88,42 +82,67 @@ defmodule BlogWeb.NoteLive do
               loading="eager"
               fetchpriority="high"
               decoding="async"
-              class="w-full object-cover"
+              class="block w-full"
             />
           </div>
 
+          <%!-- TOC --%>
+          <%= if is_list(@toc) and @toc != [] do %>
+            <div class="mt-6 border border-dashed border-border bg-[var(--tm-chrome)] p-4">
+              <div class="text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+                table of contents
+              </div>
+              <div class="mt-2">
+                <a
+                  :for={t <- @toc}
+                  href={"#" <> t.id}
+                  class="tm-link block py-1 text-[13px] text-muted-foreground"
+                  style={"padding-left: #{(t.level - 2) * 16}px"}
+                >
+                  <%= if t.level == 2, do: "▸ ", else: "· " %><%= t.title %>
+                </a>
+              </div>
+            </div>
+          <% end %>
+
           <%!-- Article body --%>
-          <div class="pt-10 prose-blog text-base text-foreground/85">
+          <div class="pt-8 pb-8 prose-blog">
             <%= @content_html %>
+          </div>
+
+          <%!-- $ echo "end of file" --%>
+          <div class="mt-2 pt-6 border-t border-dashed border-border text-xs text-muted-foreground">
+            <div>$ echo "end of file"</div>
+            <div class="mt-1 text-foreground">end of file</div>
           </div>
 
           <%!-- Series navigation --%>
           <section
             :if={@series_prev || @series_next}
-            class="mt-10 rounded-lg border border-border/50 p-5"
+            class="mt-10 border border-dashed border-border p-4"
           >
-            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground/60">
-              <%= Translation.t("series_nav", @locale) %>
+            <p class="text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+              $ <%= Translation.t("series_nav", @locale) %>
             </p>
             <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div :if={@series_prev} class="flex flex-col gap-1">
-                <span class="text-xs text-muted-foreground/50">
-                  <%= Translation.t("prev", @locale) %>
+                <span class="text-[11px] text-muted-foreground">
+                  ← <%= Translation.t("prev", @locale) %>
                 </span>
                 <.link
                   navigate={~p"/posts/#{@series_prev.slug}"}
-                  class="text-sm font-medium text-foreground hover:text-muted-foreground transition-colors"
+                  class="tm-link text-sm text-foreground"
                 >
                   <%= @series_prev.title %>
                 </.link>
               </div>
               <div :if={@series_next} class="flex flex-col gap-1 sm:ml-auto sm:text-right">
-                <span class="text-xs text-muted-foreground/50">
-                  <%= Translation.t("next", @locale) %>
+                <span class="text-[11px] text-muted-foreground">
+                  <%= Translation.t("next", @locale) %> →
                 </span>
                 <.link
                   navigate={~p"/posts/#{@series_next.slug}"}
-                  class="text-sm font-medium text-foreground hover:text-muted-foreground transition-colors"
+                  class="tm-link text-sm text-foreground"
                 >
                   <%= @series_next.title %>
                 </.link>
@@ -132,17 +151,17 @@ defmodule BlogWeb.NoteLive do
           </section>
 
           <%!-- Chronological navigation --%>
-          <nav :if={@chrono_prev || @chrono_next} class="mt-10 grid grid-cols-2 gap-4">
+          <nav :if={@chrono_prev || @chrono_next} class="mt-6 grid grid-cols-2 gap-3">
             <div>
               <.link
                 :if={@chrono_prev}
                 navigate={~p"/posts/#{@chrono_prev.slug}"}
-                class="group block rounded-lg border border-border/50 p-4 transition-colors hover:bg-muted"
+                class="tm-row group block border border-dashed border-border p-3"
               >
-                <span class="text-xs text-muted-foreground">
-                  <%= Translation.t("prev", @locale) %>
+                <span class="text-[11px] text-muted-foreground">
+                  ← <%= Translation.t("prev", @locale) %>
                 </span>
-                <p class="mt-1 text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors line-clamp-2">
+                <p class="mt-1 text-sm text-foreground line-clamp-2">
                   <%= @chrono_prev.title %>
                 </p>
               </.link>
@@ -151,12 +170,12 @@ defmodule BlogWeb.NoteLive do
               <.link
                 :if={@chrono_next}
                 navigate={~p"/posts/#{@chrono_next.slug}"}
-                class="group block rounded-lg border border-border/50 p-4 transition-colors hover:bg-muted"
+                class="tm-row group block border border-dashed border-border p-3"
               >
-                <span class="text-xs text-muted-foreground">
-                  <%= Translation.t("next", @locale) %>
+                <span class="text-[11px] text-muted-foreground">
+                  <%= Translation.t("next", @locale) %> →
                 </span>
-                <p class="mt-1 text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors line-clamp-2">
+                <p class="mt-1 text-sm text-foreground line-clamp-2">
                   <%= @chrono_next.title %>
                 </p>
               </.link>
@@ -164,32 +183,35 @@ defmodule BlogWeb.NoteLive do
           </nav>
 
           <%!-- Related posts --%>
-          <section :if={@related != []} class="mt-10 pt-10 border-t border-border/50">
-            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
-              <%= Translation.t("related_posts", @locale) %>
+          <section :if={@related != []} class="mt-10 pt-6 border-t border-dashed border-border">
+            <p class="text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+              $ ls related/
             </p>
-            <div class="mt-6 divide-y divide-border/50">
-              <%= for rel <- @related do %>
-                <.link navigate={~p"/posts/#{rel.slug}"} class="group block py-4 first:pt-0">
-                  <div class="flex items-center gap-2.5">
-                    <time class="text-xs font-medium tracking-wide text-muted-foreground/70">
-                      <%= format_date(rel.inserted_at) %>
-                    </time>
-                  </div>
-                  <h3 class="mt-1.5 text-base font-semibold text-foreground group-hover:text-muted-foreground transition-colors">
-                    <%= rel.title %>
-                  </h3>
-                  <p class="mt-1 text-sm text-muted-foreground line-clamp-2">
-                    <%= excerpt(rel.content) %>
-                  </p>
-                </.link>
-              <% end %>
+            <div class="mt-3">
+              <.link
+                :for={rel <- @related}
+                navigate={~p"/posts/#{rel.slug}"}
+                class="tm-row block py-3 border-b border-dashed border-border last:border-b-0"
+              >
+                <div class="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <time><%= format_date(rel.inserted_at) %></time>
+                </div>
+                <h3 class="mt-1 text-sm text-foreground">
+                  <span class="text-tm-accent">▸</span> <%= rel.title %>
+                </h3>
+              </.link>
             </div>
           </section>
         </article>
       <% else %>
-        <div class="mt-10 py-16 text-center">
-          <p class="text-sm text-muted-foreground"><%= Translation.t("not_found", @locale) %></p>
+        <.link
+          navigate={~p"/"}
+          class="tm-link inline-block pt-5 pb-2 text-[13px] text-muted-foreground"
+        >
+          ← cd ..
+        </.link>
+        <div class="mt-8 py-16 text-center text-muted-foreground text-sm">
+          $ cat: <%= Translation.t("not_found", @locale) %>
         </div>
       <% end %>
     </div>
@@ -350,17 +372,6 @@ defmodule BlogWeb.NoteLive do
 
       true ->
         Markdown.render_with_toc(note.raw_markdown || note.content)
-    end
-  end
-
-  defp excerpt(content) do
-    content
-    |> to_string()
-    |> String.replace(~r/\s+/, " ")
-    |> String.slice(0, 120)
-    |> case do
-      text when byte_size(text) < 120 -> text
-      text -> text <> "…"
     end
   end
 

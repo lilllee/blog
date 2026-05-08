@@ -3,116 +3,148 @@ defmodule BlogWeb.HomeLive do
 
   alias Blog.NoteData
   alias Blog.Translation
+  alias BlogWeb.Markdown
   alias BlogWeb.SEO
+
+  @banner """
+     _                   _           _     _
+    (_)_   _ _ __ ___  | |__   ___ | |__ | | ___   __ _
+    | | | | | '_ ` _ \\ | '_ \\ / _ \\| '_ \\| |/ _ \\ / _` |
+    | | |_| | | | | | || |_) | (_) | |_) | | (_) | (_| |
+   _/ |\\__,_|_| |_| |_||_.__/ \\___/|_.__/|_|\\___/ \\__, |
+  |__/                                            |___/
+  """
 
   @impl true
   def render(assigns) do
     ~H"""
     <div>
-      <%!-- Hero section --%>
-      <section class="pb-16">
-        <h1 class="text-4xl font-bold tracking-tight text-foreground text-balance leading-tight">
-          JunHo's Blog
-        </h1>
-        <p class="mt-6 text-base leading-relaxed text-muted-foreground text-pretty">
-          <%= Translation.t("subtitle", @locale) %>
-        </p>
+      <%!-- $ cat README.md --%>
+      <section class="pt-8 pb-2">
+        <.prompt cwd="~/blog" cmd="cat README.md" />
       </section>
 
-      <%!-- Section header with tag filter --%>
-      <section class="pb-6 border-b border-border">
-        <div class="flex items-center justify-between">
-          <h2 class="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
-            <%= Translation.t("recent_posts", @locale) %>
-          </h2>
-          <div class="flex items-center gap-2 overflow-x-auto pb-1" role="tablist">
-            <button
-              phx-click="filter_tag"
-              phx-value-tag=""
-              role="tab"
-              aria-selected={@selected_tag == ""}
-              class={[
-                "rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap",
-                if(@selected_tag == "",
-                  do: "bg-foreground text-background",
-                  else:
-                    "border border-border bg-secondary text-muted-foreground hover:bg-accent hover:text-foreground"
-                )
-              ]}
-            >
-              <%= Translation.t("all", @locale) %>
-            </button>
-            <button
-              :for={tag <- @all_tags}
-              phx-click="filter_tag"
-              phx-value-tag={tag}
-              role="tab"
-              aria-selected={@selected_tag == tag}
-              class={[
-                "rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap",
-                if(@selected_tag == tag,
-                  do: "bg-foreground text-background",
-                  else:
-                    "border border-border bg-secondary text-muted-foreground hover:bg-accent hover:text-foreground"
-                )
-              ]}
-            >
-              <%= tag %>
-            </button>
-          </div>
+      <section class="pb-7 text-muted-foreground">
+        <pre class="tm-banner mb-4"><%= @banner %></pre>
+        <div class="text-foreground"># <%= Translation.t("blog", @locale) %></div>
+        <div class="py-1.5"></div>
+        <p class="text-foreground/90 leading-relaxed">
+          <%= Translation.t("subtitle", @locale) %>
+        </p>
+        <div class="py-1.5"></div>
+        <div>
+          → <%= @post_count %> posts
+          <span class="text-muted-foreground/60"> · 한국어 / English</span>
         </div>
       </section>
 
-      <%!-- Post list --%>
-      <div class="mt-6">
-        <article :for={post <- @posts} class="group">
-          <.link
-            navigate={~p"/posts/#{post.slug}"}
-            class="block -mx-3 px-3 py-6 rounded-lg transition-colors card-hover border-b border-border last:border-b-0"
-          >
-            <div class="flex gap-4">
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2.5 min-h-[20px]">
-                  <time class="text-xs font-medium tracking-wide text-muted-foreground/70">
-                    <%= format_date(post.published_at || post.inserted_at) %>
-                  </time>
-                  <span :if={first_tag(post.tags)} class="text-muted-foreground/30">/</span>
-                  <span
-                    :if={first_tag(post.tags)}
-                    class="text-xs font-medium text-muted-foreground/70"
-                  >
-                    <%= first_tag(post.tags) %>
-                  </span>
-                </div>
-                <h3 class="mt-2 text-lg font-semibold leading-snug text-foreground transition-colors text-balance">
-                  <%= post.title %>
-                </h3>
-                <p class="mt-2 text-sm leading-relaxed text-muted-foreground text-pretty line-clamp-2">
-                  <%= excerpt(post.content || post.raw_markdown) %>
-                </p>
-              </div>
-              <div :if={post.image_path} class="hidden sm:block flex-shrink-0 mt-1">
-                <img
-                  src={"/images/" <> post.image_path}
-                  alt={post.title}
-                  width="112"
-                  height="80"
-                  class="h-20 w-28 rounded-md object-cover"
-                  loading="lazy"
-                />
-              </div>
+      <%!-- $ ls posts/ --tag= --%>
+      <section class="pt-2 pb-3">
+        <.prompt cwd="~/blog" cmd={"ls posts/ --tag=" <> active_tag_label(@selected_tag)} />
+      </section>
+
+      <%!-- Filter row --%>
+      <section
+        class="flex items-center gap-3 flex-wrap py-3 border-y border-dashed border-border"
+        role="tablist"
+      >
+        <span class="text-xs text-muted-foreground">filter:</span>
+        <button
+          phx-click="filter_tag"
+          phx-value-tag=""
+          role="tab"
+          aria-selected={@selected_tag == ""}
+          class={tag_button_class(@selected_tag == "")}
+        >
+          all
+        </button>
+        <button
+          :for={tag <- @all_tags}
+          phx-click="filter_tag"
+          phx-value-tag={tag}
+          role="tab"
+          aria-selected={@selected_tag == tag}
+          class={tag_button_class(@selected_tag == tag)}
+        >
+          <%= String.downcase(tag) %>
+        </button>
+      </section>
+
+      <%!-- ls header --%>
+      <div class="grid grid-cols-[100px_70px_56px_1fr] gap-4 pt-5 pb-2 border-b border-border text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+        <span>DATE</span>
+        <span>TAG</span>
+        <span class="text-right">READ</span>
+        <span>FILE</span>
+      </div>
+
+      <%!-- ls rows --%>
+      <div :if={@posts != []}>
+        <.link
+          :for={post <- @posts}
+          navigate={~p"/posts/#{post.slug}"}
+          class="tm-row grid grid-cols-[100px_70px_56px_1fr] gap-4 py-3.5 border-b border-dashed border-border items-baseline -mx-3 px-3"
+        >
+          <span class="text-xs text-muted-foreground">
+            <%= format_date(post.published_at || post.inserted_at) %>
+          </span>
+          <span class="text-xs text-tm-blue">
+            <%= post.tags |> first_tag() |> String.downcase() %>
+          </span>
+          <span class="text-xs text-muted-foreground text-right">
+            <%= reading_time(post) %>m
+          </span>
+          <div class="min-w-0">
+            <div class="text-sm font-medium text-foreground truncate">
+              <span class="text-tm-accent">▸</span> <%= post.title %>
             </div>
-          </.link>
-        </article>
+            <div class="mt-1 text-xs text-muted-foreground leading-snug line-clamp-2">
+              <%= excerpt(post.content || post.raw_markdown) %>
+            </div>
+          </div>
+        </.link>
       </div>
 
       <%!-- Empty state --%>
-      <div :if={@posts == []} class="py-16 text-center">
-        <p class="text-sm text-muted-foreground"><%= Translation.t("no_posts_yet", @locale) %></p>
+      <div :if={@posts == []} class="py-16 text-center text-muted-foreground">
+        <p>$ ls posts/ — <%= Translation.t("no_posts_yet", @locale) %></p>
+      </div>
+
+      <%!-- Footer summary --%>
+      <div :if={@posts != []} class="pt-5 pb-3 text-xs text-muted-foreground">
+        → <%= length(@posts) %> files · <%= total_reading_time(@posts) %> minutes total
       </div>
     </div>
     """
   end
+
+  attr :cwd, :string, required: true
+  attr :cmd, :string, required: true
+
+  defp prompt(assigns) do
+    ~H"""
+    <div class="flex flex-wrap items-center gap-2.5 text-sm">
+      <span class="text-tm-accent">junho</span>
+      <span class="text-tm-blue"><%= @cwd %></span>
+      <span class="text-muted-foreground">$</span>
+      <span class="text-foreground"><%= @cmd %></span>
+    </div>
+    """
+  end
+
+  defp tag_button_class(active?) do
+    base =
+      "px-2 py-0.5 text-xs border rounded-none font-mono transition-colors hover:text-foreground"
+
+    if active? do
+      base <> " border-[var(--tm-accent)] text-tm-accent"
+    else
+      base <> " border-border bg-transparent text-muted-foreground"
+    end
+  end
+
+  defp active_tag_label(""), do: "all"
+  defp active_tag_label(tag), do: String.downcase(tag)
 
   @impl true
   def mount(_params, _session, socket) do
@@ -133,7 +165,9 @@ defmodule BlogWeb.HomeLive do
         posts: posts,
         original_posts: posts,
         all_tags: all_tags,
-        selected_tag: ""
+        selected_tag: "",
+        post_count: length(posts),
+        banner: @banner
       )
 
     if locale != "ko" and connected?(socket) do
@@ -209,16 +243,21 @@ defmodule BlogWeb.HomeLive do
   defp format_date(_), do: ""
 
   defp first_tag(tags) when is_binary(tags) do
-    tags
-    |> String.split(",", trim: true)
-    |> List.first()
-    |> case do
-      nil -> nil
+    case tags |> String.split(",", trim: true) |> List.first() do
+      nil -> ""
       tag -> String.trim(tag)
     end
   end
 
-  defp first_tag(_), do: nil
+  defp first_tag(_), do: ""
+
+  defp reading_time(%{reading_time: rt}) when is_integer(rt) and rt > 0, do: rt
+
+  defp reading_time(post) do
+    Markdown.reading_time_minutes(post.raw_markdown || post.content || "")
+  end
+
+  defp total_reading_time(posts), do: posts |> Enum.map(&reading_time/1) |> Enum.sum()
 
   defp excerpt(nil), do: ""
 

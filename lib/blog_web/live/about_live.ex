@@ -140,201 +140,125 @@ defmodule BlogWeb.AboutLive do
   def render(assigns) do
     ~H"""
     <div>
-      <%!-- Back link --%>
-      <.link
-        navigate={~p"/"}
-        class="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          class="h-4 w-4"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-            clip-rule="evenodd"
-          />
-        </svg>
-        <%= Blog.Translation.t("blog", @locale) %>
-      </.link>
+      <%!-- $ whoami --verbose --%>
+      <div class="flex flex-wrap items-center gap-2.5 pt-8 pb-3 text-sm">
+        <span class="text-tm-accent">junho</span>
+        <span class="text-tm-blue">~</span>
+        <span class="text-muted-foreground">$</span>
+        <span class="text-foreground">whoami --verbose</span>
+      </div>
 
-      <div class="mt-10 space-y-12">
-        <%!-- Header Section --%>
-        <header class="space-y-5 pb-10 border-b border-border">
-          <%!-- Professional Title badge --%>
+      <div class="space-y-0">
+        <%!-- Header block: name, title, bio, contact kv --%>
+        <section class="py-5 border-b border-dashed border-border">
+          <div class="text-[28px] font-bold tracking-tight text-foreground leading-tight">
+            <%= @header["name"] || "—" %>
+          </div>
           <%= if @header["title"] && @header["title"] != "" do %>
-            <div class="inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-4 py-1.5 text-xs font-medium text-muted-foreground">
-              <%= @header["title"] %>
+            <div class="mt-1 text-sm text-tm-accent">
+              $ <%= title_slug(@header["title"]) %>
             </div>
           <% end %>
-          <%!-- Name: gradient text --%>
-          <h1
-            class="text-5xl font-bold tracking-tight"
-            style="background: linear-gradient(135deg, var(--foreground) 0%, #60a5fa 50%, #a78bfa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"
-          >
-            <%= @header["name"] || "Your Name" %>
-          </h1>
-          <%!-- Contact info: icon button style --%>
-          <div class="flex flex-wrap items-center gap-2 pt-1">
+
+          <%= if @additional["summary_md"] && @additional["summary_md"] != "" do %>
+            <div class="mt-4 max-w-[580px] prose-blog text-sm text-foreground/90">
+              <%= Markdown.render(@additional["summary_md"]) %>
+            </div>
+          <% end %>
+
+          <div class="grid grid-cols-[120px_1fr] gap-x-4 gap-y-2 mt-4 text-[13px]">
             <%= if @header["email"] && @header["email"] != "" do %>
+              <span class="text-muted-foreground">email</span>
               <a
+                class="tm-link text-tm-blue truncate"
                 href={"mailto:#{@header["email"]}"}
-                class="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-blue-500/50 hover:text-blue-400"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                </svg>
                 <%= @header["email"] %>
               </a>
             <% end %>
-            <%= if @header["phone"] && @header["phone"] != "" do %>
-              <span class="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm text-muted-foreground">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-5.51-5.25 19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 3.53 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 10.09a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
-                </svg>
-                <%= @header["phone"] %>
-              </span>
-            <% end %>
-            <%= if @header["location"] && @header["location"] != "" do %>
-              <span class="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm text-muted-foreground">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle
-                    cx="12"
-                    cy="10"
-                    r="3"
-                  />
-                </svg>
-                <%= @header["location"] %>
-              </span>
-            <% end %>
-            <%!-- Social links --%>
             <%= if @header["github"] && @header["github"] != "" do %>
-              <a
-                href={@header["github"]}
-                target="_blank"
-                class="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-blue-500/50 hover:text-blue-400"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
-                </svg>
-                GitHub
+              <span class="text-muted-foreground">github</span>
+              <a class="tm-link text-tm-blue truncate" href={@header["github"]} target="_blank" rel="noopener">
+                <%= @header["github"] %>
               </a>
             <% end %>
             <%= if @header["linkedin"] && @header["linkedin"] != "" do %>
-              <a
-                href={@header["linkedin"]}
-                target="_blank"
-                class="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-blue-500/50 hover:text-blue-400"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                </svg>
-                LinkedIn
+              <span class="text-muted-foreground">linkedin</span>
+              <a class="tm-link text-tm-blue truncate" href={@header["linkedin"]} target="_blank" rel="noopener">
+                <%= @header["linkedin"] %>
               </a>
             <% end %>
             <%= if @header["website"] && @header["website"] != "" do %>
-              <a
-                href={@header["website"]}
-                target="_blank"
-                class="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-blue-500/50 hover:text-blue-400"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10" /><path d="M2 12h20" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                </svg>
-                Website
+              <span class="text-muted-foreground">website</span>
+              <a class="tm-link text-tm-blue truncate" href={@header["website"]} target="_blank" rel="noopener">
+                <%= @header["website"] %>
               </a>
             <% end %>
+            <%= if @header["location"] && @header["location"] != "" do %>
+              <span class="text-muted-foreground">location</span>
+              <span class="text-tm-blue"><%= @header["location"] %></span>
+            <% end %>
+            <%= if @header["phone"] && @header["phone"] != "" do %>
+              <span class="text-muted-foreground">phone</span>
+              <span class="text-tm-blue"><%= @header["phone"] %></span>
+            <% end %>
           </div>
-        </header>
+        </section>
 
-        <%!-- Summary 섹션: 자기소개 문구 준비되면 주석 해제
-        <%= if @additional["summary_md"] && @additional["summary_md"] != "" do %>
-          <section>
-            <div class="flex items-center gap-3 mb-4">
-              <div class="h-4 w-1 rounded-full bg-blue-500"></div>
-              <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                Summary
-              </h2>
+        <%!-- $ cat experience.log --%>
+        <%= if @experience != [] do %>
+          <section class="py-5 border-b border-dashed border-border">
+            <div class="text-[11px] uppercase tracking-[0.12em] text-muted-foreground mb-3">
+              $ cat experience.log
             </div>
-            <div class="rounded-xl border border-border/50 bg-secondary/30 px-6 py-5 prose-blog text-sm text-foreground/85 leading-relaxed">
-              <%= Markdown.render(@additional["summary_md"]) %>
+            <div>
+              <%= for exp <- @experience do %>
+                <div class="py-3 border-b border-dashed border-border last:border-b-0">
+                  <div class="flex justify-between flex-wrap gap-3">
+                    <div>
+                      <span class="text-sm font-medium text-foreground">
+                        <%= exp["position"] %>
+                      </span>
+                      <span class="text-sm text-tm-blue">
+                        @ <%= exp["company"] %>
+                      </span>
+                      <%= if exp["location"] && exp["location"] != "" do %>
+                        <span class="text-xs text-muted-foreground">· <%= exp["location"] %></span>
+                      <% end %>
+                    </div>
+                    <span class="text-xs text-muted-foreground">
+                      <%= exp["start_date"] %> →
+                      <%= if exp["end_date"] in [nil, "", "현재"],
+                        do: "now",
+                        else: exp["end_date"] %>
+                    </span>
+                  </div>
+                  <%= if exp["description_md"] && exp["description_md"] != "" do %>
+                    <div class="mt-2 prose-blog text-sm text-foreground/90">
+                      <%= Markdown.render(exp["description_md"]) %>
+                    </div>
+                  <% end %>
+                </div>
+              <% end %>
             </div>
           </section>
         <% end %>
-        --%>
 
-        <%!-- Skills --%>
+        <%!-- $ stack --print --%>
         <%= if @skills != [] do %>
-          <section>
-            <div class="flex items-center gap-3 mb-6">
-              <div class="h-4 w-1 rounded-full bg-blue-500"></div>
-              <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                <%= Translation.t("skills", @locale) %>
-              </h2>
+          <section class="py-5 border-b border-dashed border-border">
+            <div class="text-[11px] uppercase tracking-[0.12em] text-muted-foreground mb-3">
+              $ stack --print
             </div>
-            <div class="space-y-5">
+            <div>
               <%= for skill_group <- @skills do %>
-                <div>
-                  <h3 class="text-sm font-semibold mb-2 text-foreground">
-                    <%= skill_group["category"] %>
-                  </h3>
-                  <div class="flex flex-wrap gap-2">
+                <div class="grid grid-cols-[120px_1fr] gap-4 py-1.5 text-[13px] items-baseline">
+                  <span class="text-muted-foreground">
+                    <%= String.downcase(skill_group["category"] || "") %>:
+                  </span>
+                  <div class="flex flex-wrap gap-1.5">
                     <%= for item <- skill_group["items"] || [] do %>
-                      <span class="rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground">
+                      <span class="inline-block border border-border px-2 py-px text-[11px] text-muted-foreground">
                         <%= item %>
                       </span>
                     <% end %>
@@ -345,107 +269,45 @@ defmodule BlogWeb.AboutLive do
           </section>
         <% end %>
 
-        <%!-- Experience --%>
-        <%= if @experience != [] do %>
-          <section>
-            <div class="flex items-center gap-3 mb-6">
-              <div class="h-4 w-1 rounded-full bg-blue-500"></div>
-              <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                <%= Translation.t("experience", @locale) %>
-              </h2>
-            </div>
-            <div class="space-y-8">
-              <%= for exp <- @experience do %>
-                <div class="relative border-l-2 border-blue-500/30 pl-6">
-                  <%!-- Timeline dot --%>
-                  <div class="absolute -left-[9px] top-1.5 h-4 w-4 rounded-full border-2 border-blue-500 bg-background">
-                  </div>
-                  <%!-- Position + currently employed badge --%>
-                  <div class="flex flex-wrap items-center gap-2">
-                    <h3 class="text-base font-semibold text-foreground"><%= exp["position"] %></h3>
-                    <%= if exp["end_date"] in [nil, "", "현재"] do %>
-                      <span class="rounded-full border border-green-500/20 bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-400">
-                        <%= Translation.t("currently_employed", @locale) %>
-                      </span>
-                    <% end %>
-                  </div>
-                  <%!-- Company · Location --%>
-                  <p class="mt-0.5 text-sm font-medium text-muted-foreground">
-                    <%= exp["company"] %>
-                    <%= if exp["location"] && exp["location"] != "" do %>
-                      <span class="text-muted-foreground/50">· <%= exp["location"] %></span>
-                    <% end %>
-                  </p>
-                  <%!-- Date range --%>
-                  <p class="text-xs text-muted-foreground/60 mt-0.5">
-                    <%= exp["start_date"] %> - <%= if exp["end_date"] in [nil, "", "현재"],
-                      do: Translation.t("present", @locale),
-                      else: exp["end_date"] %>
-                  </p>
-                  <%!-- Description --%>
-                  <%= if exp["description_md"] do %>
-                    <div class="mt-3 prose-blog text-sm text-foreground/85">
-                      <%= Markdown.render(exp["description_md"]) %>
-                    </div>
-                  <% end %>
-                </div>
-              <% end %>
-            </div>
-          </section>
-        <% end %>
-
-        <%!-- Projects --%>
+        <%!-- $ ls ~/projects --%>
         <%= if @projects != [] do %>
-          <section>
-            <div class="flex items-center gap-3 mb-6">
-              <div class="h-4 w-1 rounded-full bg-blue-500"></div>
-              <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                <%= Translation.t("projects", @locale) %>
-              </h2>
+          <section class="py-5 border-b border-dashed border-border">
+            <div class="text-[11px] uppercase tracking-[0.12em] text-muted-foreground mb-3">
+              $ ls ~/projects
             </div>
-            <div class="space-y-4">
+            <div>
               <%= for project <- @projects do %>
-                <div class="rounded-xl border border-border/50 bg-secondary/20 p-5 transition-colors hover:border-blue-500/30 hover:bg-secondary/40">
-                  <%!-- Project name + link icon --%>
-                  <div class="flex items-start justify-between gap-2">
-                    <h3 class="text-base font-semibold text-foreground">
-                      <%= project["name"] %>
-                    </h3>
+                <div class="py-3 border-b border-dashed border-border last:border-b-0">
+                  <div class="flex items-baseline justify-between gap-2">
+                    <div class="text-sm font-medium text-tm-accent">
+                      ▸ <%= project["name"] %>/
+                    </div>
                     <%= if project["url"] && project["url"] != "" do %>
                       <a
                         href={project["url"]}
                         target="_blank"
-                        class="shrink-0 text-muted-foreground/50 transition-colors hover:text-blue-400"
+                        rel="noopener"
+                        class="tm-link text-xs text-muted-foreground"
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                        </svg>
+                        →
                       </a>
                     <% end %>
                   </div>
-                  <%!-- Description --%>
-                  <%= if project["description_md"] do %>
-                    <div class="mt-2 prose-blog text-sm text-foreground/85">
+                  <%= if project["description_md"] && project["description_md"] != "" do %>
+                    <div class="mt-1 prose-blog text-[13px] text-foreground/90">
                       <%= Markdown.render(project["description_md"]) %>
                     </div>
                   <% end %>
-                  <%!-- Tech stack tags --%>
-                  <%= if project["tech_stack"] && project["tech_stack"] != [] do %>
-                    <div class="mt-3 flex flex-wrap gap-1">
-                      <%= for tech <- project["tech_stack"] do %>
-                        <span class="rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-xs font-medium text-blue-400">
-                          <%= tech %>
+                  <%= if (project["tech_stack"] && project["tech_stack"] != []) || (project["url"] && project["url"] != "") do %>
+                    <div class="mt-2 text-[11px] text-muted-foreground">
+                      <%= if project["tech_stack"] && project["tech_stack"] != [] do %>
+                        <%= Enum.join(project["tech_stack"], " · ") %>
+                      <% end %>
+                      <%= if project["url"] && project["url"] != "" do %>
+                        <span class="text-muted-foreground/60">
+                          <%= if project["tech_stack"] && project["tech_stack"] != [], do: "  →  ", else: "→ " %>
                         </span>
+                        <%= project["url"] %>
                       <% end %>
                     </div>
                   <% end %>
@@ -455,45 +317,38 @@ defmodule BlogWeb.AboutLive do
           </section>
         <% end %>
 
-        <%!-- Education --%>
+        <%!-- $ cat education.log --%>
         <%= if @education != [] do %>
-          <section>
-            <div class="flex items-center gap-3 mb-6">
-              <div class="h-4 w-1 rounded-full bg-blue-500"></div>
-              <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                <%= Translation.t("education", @locale) %>
-              </h2>
+          <section class="py-5 border-b border-dashed border-border">
+            <div class="text-[11px] uppercase tracking-[0.12em] text-muted-foreground mb-3">
+              $ cat education.log
             </div>
-            <div class="space-y-6">
+            <div>
               <%= for edu <- @education do %>
-                <div class="relative border-l-2 border-blue-500/30 pl-6">
-                  <%!-- Timeline dot --%>
-                  <div class="absolute -left-[9px] top-1.5 h-4 w-4 rounded-full border-2 border-blue-500 bg-background">
+                <div class="py-3 border-b border-dashed border-border last:border-b-0">
+                  <div class="flex justify-between flex-wrap gap-3">
+                    <div class="text-sm text-foreground">
+                      <%= cond do %>
+                        <% edu["degree"] && edu["degree"] != "" && edu["field"] && edu["field"] != "" -> %>
+                          <%= edu["degree"] %> in <%= edu["field"] %>
+                        <% edu["degree"] && edu["degree"] != "" -> %>
+                          <%= edu["degree"] %>
+                        <% edu["field"] && edu["field"] != "" -> %>
+                          <%= edu["field"] %>
+                        <% true -> %>
+                          <%= edu["school"] %>
+                      <% end %>
+                      <span class="text-tm-blue">@ <%= edu["school"] %></span>
+                    </div>
+                    <span class="text-xs text-muted-foreground">
+                      <%= edu["start_date"] %> →
+                      <%= if edu["end_date"] in [nil, "", "현재"],
+                        do: "now",
+                        else: edu["end_date"] %>
+                    </span>
                   </div>
-                  <%!-- Degree + Field --%>
-                  <h3 class="text-base font-semibold text-foreground">
-                    <%= cond do %>
-                      <% edu["degree"] && edu["degree"] != "" && edu["field"] && edu["field"] != "" -> %>
-                        <%= edu["degree"] %> in <%= edu["field"] %>
-                      <% edu["degree"] && edu["degree"] != "" -> %>
-                        <%= edu["degree"] %>
-                      <% edu["field"] && edu["field"] != "" -> %>
-                        <%= edu["field"] %>
-                      <% true -> %>
-                        <%= edu["school"] %>
-                    <% end %>
-                  </h3>
-                  <%!-- School --%>
-                  <p class="text-sm text-muted-foreground"><%= edu["school"] %></p>
-                  <%!-- Date range --%>
-                  <p class="text-xs text-muted-foreground/60 mt-0.5">
-                    <%= edu["start_date"] %> - <%= if edu["end_date"] in [nil, "", "현재"],
-                      do: Translation.t("present", @locale),
-                      else: edu["end_date"] %>
-                  </p>
-                  <%!-- Description --%>
-                  <%= if edu["description_md"] do %>
-                    <div class="mt-2 prose-blog text-sm text-foreground/85">
+                  <%= if edu["description_md"] && edu["description_md"] != "" do %>
+                    <div class="mt-2 prose-blog text-[13px] text-foreground/90">
                       <%= Markdown.render(edu["description_md"]) %>
                     </div>
                   <% end %>
@@ -503,35 +358,27 @@ defmodule BlogWeb.AboutLive do
           </section>
         <% end %>
 
-        <%!-- Additional Info --%>
+        <%!-- additional info --%>
         <%= if has_additional_info?(@additional) do %>
-          <section class="space-y-6">
+          <section class="py-5">
             <%= if @additional["certifications"] && @additional["certifications"] != [] do %>
-              <div>
-                <div class="flex items-center gap-3 mb-3">
-                  <div class="h-4 w-1 rounded-full bg-blue-500"></div>
-                  <h3 class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    <%= Translation.t("certifications", @locale) %>
-                  </h3>
-                </div>
-                <ul class="list-disc list-inside text-sm text-foreground/85 space-y-1">
+              <div class="grid grid-cols-[120px_1fr] gap-4 py-1.5 text-[13px] items-baseline">
+                <span class="text-muted-foreground">certifications:</span>
+                <div class="flex flex-wrap gap-1.5">
                   <%= for cert <- @additional["certifications"] do %>
-                    <li><%= cert %></li>
+                    <span class="inline-block border border-border px-2 py-px text-[11px] text-muted-foreground">
+                      <%= cert %>
+                    </span>
                   <% end %>
-                </ul>
+                </div>
               </div>
             <% end %>
             <%= if @additional["languages"] && @additional["languages"] != [] do %>
-              <div>
-                <div class="flex items-center gap-3 mb-3">
-                  <div class="h-4 w-1 rounded-full bg-blue-500"></div>
-                  <h3 class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    <%= Translation.t("spoken_languages", @locale) %>
-                  </h3>
-                </div>
-                <div class="flex flex-wrap gap-2">
+              <div class="grid grid-cols-[120px_1fr] gap-4 py-1.5 text-[13px] items-baseline">
+                <span class="text-muted-foreground">languages:</span>
+                <div class="flex flex-wrap gap-1.5">
                   <%= for lang <- @additional["languages"] do %>
-                    <span class="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground">
+                    <span class="inline-block border border-border px-2 py-px text-[11px] text-muted-foreground">
                       <%= lang %>
                     </span>
                   <% end %>
@@ -539,16 +386,11 @@ defmodule BlogWeb.AboutLive do
               </div>
             <% end %>
             <%= if @additional["interests"] && @additional["interests"] != [] do %>
-              <div>
-                <div class="flex items-center gap-3 mb-3">
-                  <div class="h-4 w-1 rounded-full bg-blue-500"></div>
-                  <h3 class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    <%= Translation.t("interests", @locale) %>
-                  </h3>
-                </div>
-                <p class="text-sm text-foreground/85">
+              <div class="grid grid-cols-[120px_1fr] gap-4 py-1.5 text-[13px] items-baseline">
+                <span class="text-muted-foreground">interests:</span>
+                <span class="text-foreground/90">
                   <%= Enum.join(@additional["interests"], ", ") %>
-                </p>
+                </span>
               </div>
             <% end %>
           </section>
@@ -556,6 +398,13 @@ defmodule BlogWeb.AboutLive do
       </div>
     </div>
     """
+  end
+
+  defp title_slug(title) do
+    title
+    |> to_string()
+    |> String.downcase()
+    |> String.replace(~r/\s+/, "_")
   end
 
   defp translate_resume_data(data, locale) do

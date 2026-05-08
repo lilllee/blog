@@ -1,81 +1,74 @@
-<header class="sticky top-0 z-50 border-b border-border bg-background backdrop-blur-none">
-  <div class="mx-auto flex max-w-2xl items-center justify-between px-6 py-4">
-    <nav class="flex items-center gap-6">
+<%
+  current_path = assigns[:current_path] || "/"
+  on_post = String.starts_with?(to_string(current_path), "/posts/")
+  on_about = current_path == "/about"
+  on_home = current_path in ["/", nil] or current_path == "" or current_path in ["/list", "/search"]
+
+  term_path =
+    cond do
+      on_about -> "~/about"
+      on_post -> "~" <> current_path
+      on_home -> "~/posts"
+      true -> "~" <> to_string(current_path)
+    end
+%>
+<header class="sticky top-0 z-50 border-b border-border bg-[var(--tm-chrome)]">
+  <div class="mx-auto flex max-w-[820px] items-center justify-between px-7 py-3.5">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <span class="tm-dot tm-dot--red" aria-hidden="true"></span>
+      <span class="tm-dot tm-dot--yellow" aria-hidden="true"></span>
+      <span class="tm-dot tm-dot--green" aria-hidden="true"></span>
+      <span class="ml-2 truncate text-xs text-muted-foreground">
+        junho@blog: <%= term_path %>
+      </span>
+    </div>
+
+    <nav class="flex items-center gap-4 text-xs">
       <.link
         navigate={~p"/"}
         class={[
-          "text-sm transition-colors hover:text-foreground",
-          if(assigns[:current_path] in ["/", nil],
-            do: "font-semibold text-foreground",
-            else: "font-normal text-muted-foreground"
-          )
+          "tm-link",
+          if(on_home, do: "text-tm-accent", else: "text-muted-foreground")
         ]}
       >
-        <%= Blog.Translation.t("blog", assigns[:locale] || "ko") %>
+        [1] posts
       </.link>
       <.link
         navigate={~p"/about"}
         class={[
-          "text-sm transition-colors hover:text-foreground",
-          if(assigns[:current_path] == "/about",
-            do: "font-semibold text-foreground",
-            else: "font-normal text-muted-foreground"
-          )
+          "tm-link",
+          if(on_about, do: "text-tm-accent", else: "text-muted-foreground")
         ]}
       >
-        <%= Blog.Translation.t("about", assigns[:locale] || "ko") %>
+        [2] about
       </.link>
-    </nav>
-    <div class="flex items-center gap-2">
-      <!-- Language selector -->
+      <a href="/rss.xml" class="tm-link text-muted-foreground">[3] rss</a>
+
+      <span class="mx-1 text-muted-foreground/40" aria-hidden="true">|</span>
+
+      <%!-- Language selector --%>
       <div class="relative" id="lang-dropdown">
         <button
           id="lang-toggle"
           type="button"
           onclick="(function(e){e.stopPropagation();document.getElementById('lang-menu').classList.toggle('hidden')})(event)"
-          class="flex h-8 items-center gap-1 rounded-full border border-border px-2.5 text-xs text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+          class="tm-link flex items-center gap-1 text-muted-foreground"
           aria-label="Change language"
         >
-          <svg
-            class="h-3.5 w-3.5"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="2" y1="12" x2="22" y2="12"></line>
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
-            </path>
-          </svg>
           <span id="current-lang-label">
             <%= Blog.Translation.get_language_name(assigns[:locale] || "ko") %>
           </span>
-          <svg
-            class="h-3 w-3"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-              clip-rule="evenodd"
-            />
-          </svg>
+          <span aria-hidden="true">▾</span>
         </button>
         <div
           id="lang-menu"
-          class="absolute right-0 top-full mt-1 hidden min-w-[120px] rounded-lg border border-border bg-background py-1 shadow-lg"
+          class="absolute right-0 top-full mt-1 hidden min-w-[112px] border border-border bg-[var(--tm-chrome)] py-1"
         >
           <button
             phx-click="set_locale"
             phx-value-locale="ko"
             onclick="document.getElementById('lang-menu').classList.add('hidden');localStorage.setItem('locale','ko');document.cookie='locale=ko;path=/;max-age=31536000;SameSite=Lax'"
-            class={"w-full px-3 py-1.5 text-left text-sm transition-colors hover:bg-muted #{if (assigns[:locale] || "ko") == "ko", do: "font-medium text-foreground", else: "text-muted-foreground"}"}
+            class={"w-full px-3 py-1 text-left text-xs tm-link #{if (assigns[:locale] || "ko") == "ko", do: "text-tm-accent", else: "text-muted-foreground"}"}
           >
             한국어
           </button>
@@ -83,7 +76,7 @@
             phx-click="set_locale"
             phx-value-locale="en"
             onclick="document.getElementById('lang-menu').classList.add('hidden');localStorage.setItem('locale','en');document.cookie='locale=en;path=/;max-age=31536000;SameSite=Lax'"
-            class={"w-full px-3 py-1.5 text-left text-sm transition-colors hover:bg-muted #{if assigns[:locale] == "en", do: "font-medium text-foreground", else: "text-muted-foreground"}"}
+            class={"w-full px-3 py-1 text-left text-xs tm-link #{if assigns[:locale] == "en", do: "text-tm-accent", else: "text-muted-foreground"}"}
           >
             English
           </button>
@@ -91,7 +84,7 @@
             phx-click="set_locale"
             phx-value-locale="ja"
             onclick="document.getElementById('lang-menu').classList.add('hidden');localStorage.setItem('locale','ja');document.cookie='locale=ja;path=/;max-age=31536000;SameSite=Lax'"
-            class={"w-full px-3 py-1.5 text-left text-sm transition-colors hover:bg-muted #{if assigns[:locale] == "ja", do: "font-medium text-foreground", else: "text-muted-foreground"}"}
+            class={"w-full px-3 py-1 text-left text-xs tm-link #{if assigns[:locale] == "ja", do: "text-tm-accent", else: "text-muted-foreground"}"}
           >
             日本語
           </button>
@@ -99,70 +92,35 @@
             phx-click="set_locale"
             phx-value-locale="zh"
             onclick="document.getElementById('lang-menu').classList.add('hidden');localStorage.setItem('locale','zh');document.cookie='locale=zh;path=/;max-age=31536000;SameSite=Lax'"
-            class={"w-full px-3 py-1.5 text-left text-sm transition-colors hover:bg-muted #{if assigns[:locale] == "zh", do: "font-medium text-foreground", else: "text-muted-foreground"}"}
+            class={"w-full px-3 py-1 text-left text-xs tm-link #{if assigns[:locale] == "zh", do: "text-tm-accent", else: "text-muted-foreground"}"}
           >
             中文
           </button>
         </div>
       </div>
-      <!-- Theme toggle -->
+
+      <%!-- Theme toggle --%>
       <button
         id="theme-toggle"
         type="button"
-        class="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+        class="tm-link text-muted-foreground"
         aria-label="Toggle dark mode"
       >
-        <!-- Sun icon (shown in dark mode) -->
-        <svg
-          class="hidden h-3.5 w-3.5 dark:block"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <circle cx="12" cy="12" r="5"></circle>
-          <line x1="12" y1="1" x2="12" y2="3"></line>
-          <line x1="12" y1="21" x2="12" y2="23"></line>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-          <line x1="1" y1="12" x2="3" y2="12"></line>
-          <line x1="21" y1="12" x2="23" y2="12"></line>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-        </svg>
-        <!-- Moon icon (shown in light mode) -->
-        <svg
-          class="block h-3.5 w-3.5 dark:hidden"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-        </svg>
+        <span class="hidden dark:inline">[☀]</span>
+        <span class="inline dark:hidden">[☾]</span>
       </button>
-    </div>
+    </nav>
   </div>
 </header>
 
-<main class="mx-auto max-w-2xl px-6 pt-8 pb-16">
+<main class="mx-auto max-w-[820px] px-7 pt-2 pb-16">
   <.flash_group flash={@flash} />
   <%= @inner_content %>
 </main>
 
-<footer class="mx-auto max-w-2xl border-t border-border/50 px-6 py-8">
-  <p class="text-xs text-muted-foreground/50">
-    &copy; <%= DateTime.utc_now().year %> JunHo. <%= Blog.Translation.t(
-      "copyright",
-      assigns[:locale] || "ko"
-    ) %>
-  </p>
+<footer class="mx-auto max-w-[820px] flex items-center justify-between border-t border-border/50 px-7 py-6 text-xs text-muted-foreground">
+  <span>&copy; <%= DateTime.utc_now().year %> junho — phoenix</span>
+  <span>ctrl+k to search</span>
 </footer>
 
 <script>

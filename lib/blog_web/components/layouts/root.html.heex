@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#191714" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f5f3ee" media="(prefers-color-scheme: light)" />
     <meta name="csrf-token" content={get_csrf_token()} />
     <.live_title><%= assigns[:page_title] || "JunHo's Blog" %></.live_title>
     <%= if assigns[:meta] do %>
@@ -32,8 +32,6 @@
         <%= @json_ld %>
       </script>
     <% end %>
-    <link rel="preload" href="/fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/inter-700.woff2" as="font" type="font/woff2" crossorigin />
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
     <link rel="alternate" type="application/rss+xml" title="JunHo's Blog" href="/rss.xml" />
     <link rel="icon" href="/favicon.ico" />
@@ -51,7 +49,7 @@
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
     </script>
   </head>
-  <body class="font-sans antialiased bg-background text-foreground">
+  <body class="antialiased bg-background text-foreground">
     <%= @inner_content %>
   </body>
 </html>
