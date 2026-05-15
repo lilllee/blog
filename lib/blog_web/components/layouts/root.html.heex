@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang={assigns[:locale] || "ko"} class="dark">
+<html lang={assigns[:locale] || "ko"}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#191714" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#f5f3ee" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#fbfaf7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#16161a" media="(prefers-color-scheme: dark)" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title><%= assigns[:page_title] || "JunHo's Blog" %></.live_title>
+    <.live_title><%= assigns[:page_title] || "junho" %></.live_title>
     <%= if assigns[:meta] do %>
       <meta name="description" content={@meta[:description]} />
       <meta name="author" content="JunHo Lee" />
@@ -14,7 +14,7 @@
       <meta property="og:description" content={@meta[:og_description] || @meta[:description]} />
       <meta property="og:type" content={@meta[:og_type] || @meta[:type] || "website"} />
       <meta property="og:url" content={@meta[:og_url] || @meta[:url]} />
-      <meta property="og:site_name" content="JunHo's Blog" />
+      <meta property="og:site_name" content="junho" />
       <meta :if={@meta[:og_image]} property="og:image" content={@meta[:og_image]} />
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={@meta[:og_title] || @meta[:title]} />
@@ -33,23 +33,12 @@
       </script>
     <% end %>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-    <link rel="alternate" type="application/rss+xml" title="JunHo's Blog" href="/rss.xml" />
+    <link rel="alternate" type="application/rss+xml" title="junho" href="/rss.xml" />
     <link rel="icon" href="/favicon.ico" />
-    <script>
-      // FOUC prevention: restore dark mode before paint
-      (function() {
-        var theme = localStorage.getItem('theme');
-        if (theme === 'light') {
-          document.documentElement.classList.remove('dark');
-        } else {
-          document.documentElement.classList.add('dark');
-        }
-      })();
-    </script>
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
     </script>
   </head>
-  <body class="antialiased bg-background text-foreground">
+  <body>
     <%= @inner_content %>
   </body>
 </html>

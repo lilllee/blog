@@ -1,5 +1,40 @@
 import Config
 
+# Auto-load .env in dev/test so contributors can clone-and-run.
+# Prod expects real environment variables (container / systemd / secrets manager).
+if config_env() != :prod and File.exists?(".env") do
+  ".env"
+  |> File.stream!()
+  |> Enum.each(fn line ->
+    line = String.trim(line)
+
+    case line do
+      "" ->
+        :ok
+
+      "#" <> _ ->
+        :ok
+
+      _ ->
+        case String.split(line, "=", parts: 2) do
+          [k, v] ->
+            value =
+              v
+              |> String.trim()
+              |> String.trim_leading("\"")
+              |> String.trim_trailing("\"")
+              |> String.trim_leading("'")
+              |> String.trim_trailing("'")
+
+            System.put_env(String.trim(k), value)
+
+          _ ->
+            :ok
+        end
+    end
+  end)
+end
+
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration

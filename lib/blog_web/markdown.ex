@@ -74,27 +74,39 @@ defmodule BlogWeb.Markdown do
   def tag_list(_), do: []
 
   defp build_toc(html) do
-    {:ok, doc} = Floki.parse_document(html)
+    heading_regex = ~r/<h([23])([^>]*)>(.*?)<\/h\1>/s
 
-    {tree, {_seen, toc}} =
-      Floki.traverse_and_update(doc, {%{}, []}, fn
-        {"h2" = tag, attrs, children}, {seen, toc} ->
-          title = Floki.text(children) |> String.trim()
+    {doc, _last, {_seen, toc}} =
+      heading_regex
+      |> Regex.scan(html, return: :index)
+      |> Enum.reduce({[], 0, {%{}, []}}, fn
+        [{start, len}, {level_start, level_len}, {attrs_start, attrs_len}, {inner_start, inner_len}],
+        {chunks, last, {seen, toc}} ->
+          level = html |> binary_part(level_start, level_len) |> String.to_integer()
+          attrs = binary_part(html, attrs_start, attrs_len)
+          inner = binary_part(html, inner_start, inner_len)
+
+          title =
+            inner
+            |> strip_html_tags()
+            |> String.trim()
+
           {id, seen} = heading_id(title, seen)
-          node = {tag, [{"id", id} | attrs], children}
-          {node, {seen, [%{id: id, title: title, level: 2} | toc]}}
+          toc = [%{id: id, title: title, level: level} | toc]
 
-        {"h3" = tag, attrs, children}, {seen, toc} ->
-          title = Floki.text(children) |> String.trim()
-          {id, seen} = heading_id(title, seen)
-          node = {tag, [{"id", id} | attrs], children}
-          {node, {seen, [%{id: id, title: title, level: 3} | toc]}}
+          before_heading = binary_part(html, last, start - last)
+          heading = ~s(<h#{level} id="#{id}"#{attrs}>#{inner}</h#{level}>)
 
-        other, acc ->
-          {other, acc}
+          {[chunks, before_heading, heading], start + len, {seen, toc}}
       end)
 
-    {Floki.raw_html(tree), Enum.reverse(toc)}
+    doc = [doc, binary_part(html, _last, byte_size(html) - _last)] |> IO.iodata_to_binary()
+
+    {doc, Enum.reverse(toc)}
+  end
+
+  defp strip_html_tags(html) do
+    String.replace(html, ~r/<[^>]*>/, "")
   end
 
   defp maybe_render_toc(toc) when length(toc) < 3, do: []

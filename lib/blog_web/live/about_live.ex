@@ -1,23 +1,20 @@
 defmodule BlogWeb.AboutLive do
   @moduledoc """
-  Public-facing resume/about page.
-
-  Displays professional resume information with clean, scannable layout.
-  Supports markdown rendering in descriptions and responsive design.
+  Public-facing resume/about page. Minimal, reading-first.
   """
 
   use BlogWeb, :live_view
 
   alias Blog.ResumeData
+  alias Blog.Translation
   alias BlogWeb.Markdown
   alias BlogWeb.SEO
-  alias Blog.Translation
 
   @impl true
   def mount(_params, _session, socket) do
     seo =
       SEO.seo_assigns(:page, %{
-        title: "About - JunHo Lee",
+        title: "about · junho",
         description:
           "Software engineer specializing in Elixir, Phoenix, and full-stack development.",
         path: "/about",
@@ -28,30 +25,26 @@ defmodule BlogWeb.AboutLive do
 
     case ResumeData.get_resume() do
       {:ok, resume} ->
-        header = decode_json(resume.header, %{})
-        skills = decode_json(resume.skills, [])
-        experience = decode_json(resume.experience, [])
-        projects = decode_json(resume.projects, [])
-        education = decode_json(resume.education, [])
-        additional = decode_json(resume.additional, %{})
+        data = %{
+          header: decode_json(resume.header, %{}),
+          skills: decode_json(resume.skills, []),
+          experience: decode_json(resume.experience, []),
+          projects: decode_json(resume.projects, []),
+          education: decode_json(resume.education, []),
+          additional: decode_json(resume.additional, %{})
+        }
 
         socket =
           socket
           |> assign(seo)
           |> assign(
-            resume: resume,
-            header: header,
-            skills: skills,
-            experience: experience,
-            projects: projects,
-            education: education,
-            additional: additional,
-            original_header: header,
-            original_skills: skills,
-            original_experience: experience,
-            original_projects: projects,
-            original_education: education,
-            original_additional: additional
+            header: data.header,
+            skills: data.skills,
+            experience: data.experience,
+            projects: data.projects,
+            education: data.education,
+            additional: data.additional,
+            original: data
           )
 
         if locale != "ko" and connected?(socket) do
@@ -61,38 +54,28 @@ defmodule BlogWeb.AboutLive do
         {:ok, socket}
 
       {:error, _} ->
+        empty = %{header: %{}, skills: [], experience: [], projects: [], education: [], additional: %{}}
+
         {:ok,
          socket
          |> assign(seo)
-         |> assign(
-           resume: nil,
-           header: %{},
-           skills: [],
-           experience: [],
-           projects: [],
-           education: [],
-           additional: %{},
-           original_header: %{},
-           original_skills: [],
-           original_experience: [],
-           original_projects: [],
-           original_education: [],
-           original_additional: %{}
-         )}
+         |> assign(header: %{}, skills: [], experience: [], projects: [], education: [], additional: %{}, original: empty)}
     end
   end
 
   @impl true
   def handle_info({:locale_changed, locale}, socket) do
     if locale == "ko" do
+      o = socket.assigns.original
+
       {:noreply,
        assign(socket,
-         header: socket.assigns.original_header,
-         skills: socket.assigns.original_skills,
-         experience: socket.assigns.original_experience,
-         projects: socket.assigns.original_projects,
-         education: socket.assigns.original_education,
-         additional: socket.assigns.original_additional
+         header: o.header,
+         skills: o.skills,
+         experience: o.experience,
+         projects: o.projects,
+         education: o.education,
+         additional: o.additional
        )}
     else
       send(self(), {:translate_resume, locale})
@@ -102,34 +85,25 @@ defmodule BlogWeb.AboutLive do
 
   def handle_info({:translate_resume, locale}, socket) do
     pid = self()
-
-    original = %{
-      header: socket.assigns.original_header,
-      skills: socket.assigns.original_skills,
-      experience: socket.assigns.original_experience,
-      projects: socket.assigns.original_projects,
-      education: socket.assigns.original_education,
-      additional: socket.assigns.original_additional
-    }
+    original = socket.assigns.original
 
     Task.start(fn ->
-      translated = translate_resume_data(original, locale)
-      send(pid, {:resume_translated, translated, locale})
+      send(pid, {:resume_translated, translate_resume_data(original, locale), locale})
     end)
 
     {:noreply, socket}
   end
 
-  def handle_info({:resume_translated, translated, locale}, socket) do
+  def handle_info({:resume_translated, data, locale}, socket) do
     if socket.assigns[:locale] == locale do
       {:noreply,
        assign(socket,
-         header: translated.header,
-         skills: translated.skills,
-         experience: translated.experience,
-         projects: translated.projects,
-         education: translated.education,
-         additional: translated.additional
+         header: data.header,
+         skills: data.skills,
+         experience: data.experience,
+         projects: data.projects,
+         education: data.education,
+         additional: data.additional
        )}
     else
       {:noreply, socket}
@@ -139,278 +113,203 @@ defmodule BlogWeb.AboutLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div>
-      <%!-- $ whoami --verbose --%>
-      <div class="flex flex-wrap items-center gap-2.5 pt-8 pb-3 text-sm">
-        <span class="text-tm-accent">junho</span>
-        <span class="text-tm-blue">~</span>
-        <span class="text-muted-foreground">$</span>
-        <span class="text-foreground">whoami --verbose</span>
+    <.link navigate={~p"/"} class="back">← <%= Translation.t("back_to_list", @locale) %></.link>
+
+    <article class="about">
+      <header class="about-head">
+        <h1><%= @header["name"] || "—" %></h1>
+        <p :if={present?(@header["title"])} class="about-title"><%= @header["title"] %></p>
+      </header>
+
+      <div :if={present?(@additional["summary_md"])} class="about-summary">
+        <%= Markdown.render(@additional["summary_md"]) %>
       </div>
 
-      <div class="space-y-0">
-        <%!-- Header block: name, title, bio, contact kv --%>
-        <section class="py-5 border-b border-dashed border-border">
-          <div class="text-[28px] font-bold tracking-tight text-foreground leading-tight">
-            <%= @header["name"] || "—" %>
-          </div>
-          <%= if @header["title"] && @header["title"] != "" do %>
-            <div class="mt-1 text-sm text-tm-accent">
-              $ <%= title_slug(@header["title"]) %>
-            </div>
-          <% end %>
-
-          <%= if @additional["summary_md"] && @additional["summary_md"] != "" do %>
-            <div class="mt-4 max-w-[580px] prose-blog text-sm text-foreground/90">
-              <%= Markdown.render(@additional["summary_md"]) %>
-            </div>
-          <% end %>
-
-          <div class="grid grid-cols-[120px_1fr] gap-x-4 gap-y-2 mt-4 text-[13px]">
-            <%= if @header["email"] && @header["email"] != "" do %>
-              <span class="text-muted-foreground">email</span>
-              <a
-                class="tm-link text-tm-blue truncate"
-                href={"mailto:#{@header["email"]}"}
-              >
-                <%= @header["email"] %>
-              </a>
-            <% end %>
-            <%= if @header["github"] && @header["github"] != "" do %>
-              <span class="text-muted-foreground">github</span>
-              <a class="tm-link text-tm-blue truncate" href={@header["github"]} target="_blank" rel="noopener">
-                <%= @header["github"] %>
-              </a>
-            <% end %>
-            <%= if @header["linkedin"] && @header["linkedin"] != "" do %>
-              <span class="text-muted-foreground">linkedin</span>
-              <a class="tm-link text-tm-blue truncate" href={@header["linkedin"]} target="_blank" rel="noopener">
-                <%= @header["linkedin"] %>
-              </a>
-            <% end %>
-            <%= if @header["website"] && @header["website"] != "" do %>
-              <span class="text-muted-foreground">website</span>
-              <a class="tm-link text-tm-blue truncate" href={@header["website"]} target="_blank" rel="noopener">
-                <%= @header["website"] %>
-              </a>
-            <% end %>
-            <%= if @header["location"] && @header["location"] != "" do %>
-              <span class="text-muted-foreground">location</span>
-              <span class="text-tm-blue"><%= @header["location"] %></span>
-            <% end %>
-            <%= if @header["phone"] && @header["phone"] != "" do %>
-              <span class="text-muted-foreground">phone</span>
-              <span class="text-tm-blue"><%= @header["phone"] %></span>
-            <% end %>
-          </div>
-        </section>
-
-        <%!-- $ cat experience.log --%>
-        <%= if @experience != [] do %>
-          <section class="py-5 border-b border-dashed border-border">
-            <div class="text-[11px] uppercase tracking-[0.12em] text-muted-foreground mb-3">
-              $ cat experience.log
-            </div>
-            <div>
-              <%= for exp <- @experience do %>
-                <div class="py-3 border-b border-dashed border-border last:border-b-0">
-                  <div class="flex justify-between flex-wrap gap-3">
-                    <div>
-                      <span class="text-sm font-medium text-foreground">
-                        <%= exp["position"] %>
-                      </span>
-                      <span class="text-sm text-tm-blue">
-                        @ <%= exp["company"] %>
-                      </span>
-                      <%= if exp["location"] && exp["location"] != "" do %>
-                        <span class="text-xs text-muted-foreground">· <%= exp["location"] %></span>
-                      <% end %>
-                    </div>
-                    <span class="text-xs text-muted-foreground">
-                      <%= exp["start_date"] %> →
-                      <%= if exp["end_date"] in [nil, "", "현재"],
-                        do: "now",
-                        else: exp["end_date"] %>
-                    </span>
-                  </div>
-                  <%= if exp["description_md"] && exp["description_md"] != "" do %>
-                    <div class="mt-2 prose-blog text-sm text-foreground/90">
-                      <%= Markdown.render(exp["description_md"]) %>
-                    </div>
-                  <% end %>
-                </div>
-              <% end %>
-            </div>
-          </section>
+      <dl :if={has_contact?(@header)} class="about-contact">
+        <%= for {label, content} <- contact_rows(@header) do %>
+          <dt><%= label %></dt>
+          <dd><%= content %></dd>
         <% end %>
+      </dl>
 
-        <%!-- $ stack --print --%>
-        <%= if @skills != [] do %>
-          <section class="py-5 border-b border-dashed border-border">
-            <div class="text-[11px] uppercase tracking-[0.12em] text-muted-foreground mb-3">
-              $ stack --print
-            </div>
-            <div>
-              <%= for skill_group <- @skills do %>
-                <div class="grid grid-cols-[120px_1fr] gap-4 py-1.5 text-[13px] items-baseline">
-                  <span class="text-muted-foreground">
-                    <%= String.downcase(skill_group["category"] || "") %>:
-                  </span>
-                  <div class="flex flex-wrap gap-1.5">
-                    <%= for item <- skill_group["items"] || [] do %>
-                      <span class="inline-block border border-border px-2 py-px text-[11px] text-muted-foreground">
-                        <%= item %>
-                      </span>
-                    <% end %>
-                  </div>
-                </div>
-              <% end %>
-            </div>
-          </section>
-        <% end %>
-
-        <%!-- $ ls ~/projects --%>
-        <%= if @projects != [] do %>
-          <section class="py-5 border-b border-dashed border-border">
-            <div class="text-[11px] uppercase tracking-[0.12em] text-muted-foreground mb-3">
-              $ ls ~/projects
-            </div>
-            <div>
-              <%= for project <- @projects do %>
-                <div class="py-3 border-b border-dashed border-border last:border-b-0">
-                  <div class="flex items-baseline justify-between gap-2">
-                    <div class="text-sm font-medium text-tm-accent">
-                      ▸ <%= project["name"] %>/
-                    </div>
-                    <%= if project["url"] && project["url"] != "" do %>
-                      <a
-                        href={project["url"]}
-                        target="_blank"
-                        rel="noopener"
-                        class="tm-link text-xs text-muted-foreground"
-                      >
-                        →
-                      </a>
-                    <% end %>
-                  </div>
-                  <%= if project["description_md"] && project["description_md"] != "" do %>
-                    <div class="mt-1 prose-blog text-[13px] text-foreground/90">
-                      <%= Markdown.render(project["description_md"]) %>
-                    </div>
-                  <% end %>
-                  <%= if (project["tech_stack"] && project["tech_stack"] != []) || (project["url"] && project["url"] != "") do %>
-                    <div class="mt-2 text-[11px] text-muted-foreground">
-                      <%= if project["tech_stack"] && project["tech_stack"] != [] do %>
-                        <%= Enum.join(project["tech_stack"], " · ") %>
-                      <% end %>
-                      <%= if project["url"] && project["url"] != "" do %>
-                        <span class="text-muted-foreground/60">
-                          <%= if project["tech_stack"] && project["tech_stack"] != [], do: "  →  ", else: "→ " %>
-                        </span>
-                        <%= project["url"] %>
-                      <% end %>
-                    </div>
-                  <% end %>
-                </div>
-              <% end %>
-            </div>
-          </section>
-        <% end %>
-
-        <%!-- $ cat education.log --%>
-        <%= if @education != [] do %>
-          <section class="py-5 border-b border-dashed border-border">
-            <div class="text-[11px] uppercase tracking-[0.12em] text-muted-foreground mb-3">
-              $ cat education.log
-            </div>
-            <div>
-              <%= for edu <- @education do %>
-                <div class="py-3 border-b border-dashed border-border last:border-b-0">
-                  <div class="flex justify-between flex-wrap gap-3">
-                    <div class="text-sm text-foreground">
-                      <%= cond do %>
-                        <% edu["degree"] && edu["degree"] != "" && edu["field"] && edu["field"] != "" -> %>
-                          <%= edu["degree"] %> in <%= edu["field"] %>
-                        <% edu["degree"] && edu["degree"] != "" -> %>
-                          <%= edu["degree"] %>
-                        <% edu["field"] && edu["field"] != "" -> %>
-                          <%= edu["field"] %>
-                        <% true -> %>
-                          <%= edu["school"] %>
-                      <% end %>
-                      <span class="text-tm-blue">@ <%= edu["school"] %></span>
-                    </div>
-                    <span class="text-xs text-muted-foreground">
-                      <%= edu["start_date"] %> →
-                      <%= if edu["end_date"] in [nil, "", "현재"],
-                        do: "now",
-                        else: edu["end_date"] %>
-                    </span>
-                  </div>
-                  <%= if edu["description_md"] && edu["description_md"] != "" do %>
-                    <div class="mt-2 prose-blog text-[13px] text-foreground/90">
-                      <%= Markdown.render(edu["description_md"]) %>
-                    </div>
-                  <% end %>
-                </div>
-              <% end %>
-            </div>
-          </section>
-        <% end %>
-
-        <%!-- additional info --%>
-        <%= if has_additional_info?(@additional) do %>
-          <section class="py-5">
-            <%= if @additional["certifications"] && @additional["certifications"] != [] do %>
-              <div class="grid grid-cols-[120px_1fr] gap-4 py-1.5 text-[13px] items-baseline">
-                <span class="text-muted-foreground">certifications:</span>
-                <div class="flex flex-wrap gap-1.5">
-                  <%= for cert <- @additional["certifications"] do %>
-                    <span class="inline-block border border-border px-2 py-px text-[11px] text-muted-foreground">
-                      <%= cert %>
-                    </span>
-                  <% end %>
-                </div>
-              </div>
-            <% end %>
-            <%= if @additional["languages"] && @additional["languages"] != [] do %>
-              <div class="grid grid-cols-[120px_1fr] gap-4 py-1.5 text-[13px] items-baseline">
-                <span class="text-muted-foreground">languages:</span>
-                <div class="flex flex-wrap gap-1.5">
-                  <%= for lang <- @additional["languages"] do %>
-                    <span class="inline-block border border-border px-2 py-px text-[11px] text-muted-foreground">
-                      <%= lang %>
-                    </span>
-                  <% end %>
-                </div>
-              </div>
-            <% end %>
-            <%= if @additional["interests"] && @additional["interests"] != [] do %>
-              <div class="grid grid-cols-[120px_1fr] gap-4 py-1.5 text-[13px] items-baseline">
-                <span class="text-muted-foreground">interests:</span>
-                <span class="text-foreground/90">
-                  <%= Enum.join(@additional["interests"], ", ") %>
+      <section :if={@experience != []} class="about-section">
+        <h2><%= Translation.t("experience", @locale) %></h2>
+        <div class="about-items">
+          <div :for={e <- @experience} class="a-item">
+            <div class="row1">
+              <div class="lead">
+                <%= e["position"] %><span class="sub">
+                  · <%= e["company"] %><%= if present?(e["location"]), do: " · " <> e["location"] %>
                 </span>
               </div>
-            <% end %>
-          </section>
-        <% end %>
-      </div>
-    </div>
+              <div class="dates">
+                <%= e["start_date"] %> – <%= end_date(e["end_date"], @locale) %>
+              </div>
+            </div>
+            <div :if={present?(e["description_md"])} class="desc">
+              <%= Markdown.render(e["description_md"]) %>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section :if={@skills != []} class="about-section">
+        <h2><%= Translation.t("skills", @locale) %></h2>
+        <dl class="about-kv">
+          <%= for s <- @skills do %>
+            <dt><%= String.downcase(to_string(s["category"] || "")) %></dt>
+            <dd><%= Enum.join(s["items"] || [], ", ") %></dd>
+          <% end %>
+        </dl>
+      </section>
+
+      <section :if={@projects != []} class="about-section">
+        <h2><%= Translation.t("projects", @locale) %></h2>
+        <div class="about-items">
+          <div :for={p <- @projects} class="a-item">
+            <div class="row1">
+              <div class="lead">
+                <%= if present?(p["url"]) do %>
+                  <a href={p["url"]} target="_blank" rel="noopener"><%= p["name"] %></a>
+                <% else %>
+                  <%= p["name"] %>
+                <% end %>
+              </div>
+            </div>
+            <div :if={present?(p["description_md"])} class="desc">
+              <%= Markdown.render(p["description_md"]) %>
+            </div>
+            <div :if={p["tech_stack"] && p["tech_stack"] != []} class="tech">
+              <%= Enum.join(p["tech_stack"], " · ") %>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section :if={@education != []} class="about-section">
+        <h2><%= Translation.t("education", @locale) %></h2>
+        <div class="about-items">
+          <div :for={ed <- @education} class="a-item">
+            <div class="row1">
+              <div class="lead">
+                <%= education_head(ed) %><span class="sub"> · <%= ed["school"] %></span>
+              </div>
+              <div class="dates">
+                <%= ed["start_date"] %> – <%= end_date(ed["end_date"], @locale) %>
+              </div>
+            </div>
+            <div :if={present?(ed["description_md"])} class="desc">
+              <%= Markdown.render(ed["description_md"]) %>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section :if={additional_rows(@additional) != []} class="about-section">
+        <dl class="about-kv">
+          <%= for {label, value} <- additional_rows(@additional) do %>
+            <dt><%= label %></dt>
+            <dd><%= value %></dd>
+          <% end %>
+        </dl>
+      </section>
+    </article>
+
+    <footer class="qfooter">
+      <.link navigate={~p"/"}>← <%= Translation.t("back_to_list", @locale) %></.link>
+      <span class="langs">
+        <button
+          :for={code <- ~w(ko en ja zh)}
+          type="button"
+          phx-click="set_locale"
+          phx-value-locale={code}
+          class={if @locale == code, do: "current"}
+        ><%= lang_label(code) %></button>
+      </span>
+    </footer>
     """
   end
 
-  defp title_slug(title) do
-    title
-    |> to_string()
-    |> String.downcase()
-    |> String.replace(~r/\s+/, "_")
+  defp lang_label("ko"), do: "한국어"
+  defp lang_label("en"), do: "English"
+  defp lang_label("ja"), do: "日本語"
+  defp lang_label("zh"), do: "中文"
+
+  defp present?(nil), do: false
+  defp present?(""), do: false
+  defp present?(_), do: true
+
+  defp has_contact?(header) do
+    Enum.any?(~w(email github linkedin website location phone), &present?(header[&1]))
   end
+
+  defp contact_rows(header) do
+    [
+      {"email", email_link(header["email"])},
+      {"github", url_link(header["github"])},
+      {"linkedin", url_link(header["linkedin"])},
+      {"website", url_link(header["website"])},
+      {"location", header["location"]},
+      {"phone", header["phone"]}
+    ]
+    |> Enum.filter(fn {_label, content} -> content != nil end)
+  end
+
+  defp email_link(nil), do: nil
+  defp email_link(""), do: nil
+
+  defp email_link(addr),
+    do: Phoenix.HTML.raw(~s(<a href="mailto:#{addr}">#{addr}</a>))
+
+  defp url_link(nil), do: nil
+  defp url_link(""), do: nil
+
+  defp url_link(url) do
+    label = String.replace(url, ~r{^https?://}, "")
+
+    Phoenix.HTML.raw(
+      ~s(<a href="#{url}" target="_blank" rel="noopener">#{label}</a>)
+    )
+  end
+
+  defp education_head(ed) do
+    cond do
+      present?(ed["degree"]) and present?(ed["field"]) -> "#{ed["degree"]} in #{ed["field"]}"
+      present?(ed["degree"]) -> ed["degree"]
+      present?(ed["field"]) -> ed["field"]
+      true -> ed["school"] || ""
+    end
+  end
+
+  defp end_date(date, locale) when date in [nil, "", "현재"], do: Translation.t("present", locale)
+  defp end_date(date, _), do: date
+
+  defp additional_rows(additional) do
+    [
+      {"certifications", list_or_nil(additional["certifications"])},
+      {"languages", list_or_nil(additional["languages"])},
+      {"interests", list_or_nil(additional["interests"])}
+    ]
+    |> Enum.filter(fn {_l, v} -> v end)
+  end
+
+  defp list_or_nil(nil), do: nil
+  defp list_or_nil([]), do: nil
+  defp list_or_nil(list) when is_list(list), do: Enum.join(list, ", ")
+
+  defp decode_json(json, default) when is_binary(json) do
+    case Jason.decode(json) do
+      {:ok, data} -> data
+      _ -> default
+    end
+  end
+
+  defp decode_json(_, default), do: default
 
   defp translate_resume_data(data, locale) do
     %{
       header: translate_header(data.header, locale),
-      skills: translate_skills(data[:skills] || [], locale),
+      skills: translate_skills(data.skills, locale),
       experience: translate_list(data.experience, ["position", "description_md"], locale),
       projects: translate_list(data.projects, ["name", "description_md"], locale),
       education: translate_list(data.education, ["degree", "field", "description_md"], locale),
@@ -430,8 +329,10 @@ defmodule BlogWeb.AboutLive do
   end
 
   defp translate_header(header, locale) do
-    title = translate_field(header["title"], locale)
-    Map.put(header, "title", title || header["title"])
+    case translate_field(header["title"], locale) do
+      nil -> header
+      title -> Map.put(header, "title", title)
+    end
   end
 
   defp translate_list(items, fields, locale) do
@@ -476,20 +377,5 @@ defmodule BlogWeb.AboutLive do
       nil -> nil
       translated -> String.split(translated, "\n", trim: true)
     end
-  end
-
-  defp decode_json(json_string, default) when is_binary(json_string) do
-    case Jason.decode(json_string) do
-      {:ok, data} -> data
-      {:error, _} -> default
-    end
-  end
-
-  defp decode_json(_, default), do: default
-
-  defp has_additional_info?(additional) do
-    (additional["certifications"] && additional["certifications"] != []) ||
-      (additional["languages"] && additional["languages"] != []) ||
-      (additional["interests"] && additional["interests"] != [])
   end
 end

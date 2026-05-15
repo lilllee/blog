@@ -3,15 +3,6 @@ defmodule BlogWeb.UploadController do
 
   alias BlogWeb.Uploads
 
-  def audio(conn, %{"path" => path_parts}) when is_list(path_parts) do
-    path_parts
-    |> Path.join()
-    |> Uploads.resolve_audio_path()
-    |> send_upload(conn)
-  end
-
-  def audio(conn, _params), do: send_resp(conn, 404, "Not found")
-
   def image(conn, %{"path" => path_parts}) when is_list(path_parts) do
     path_parts
     |> Path.join()

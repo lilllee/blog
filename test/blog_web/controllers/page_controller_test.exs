@@ -5,6 +5,6 @@ defmodule BlogWeb.PageControllerTest do
     conn = get(conn, ~p"/")
     html = html_response(conn, 200)
 
-    assert html =~ "JunHo&#39;s Blog"
+    assert html =~ "junho"
   end
 end

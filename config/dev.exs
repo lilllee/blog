@@ -4,7 +4,10 @@ import Config
 config :blog, Blog.Repo,
   adapter: Ecto.Adapters.SQLite3,
   database: "priv/repo/dev.db",
-  pool_size: 10,
+  # SQLite permits only one writer at a time. Keeping the dev pool small avoids
+  # connection storms/lock errors on WSL + Windows-mounted workspaces.
+  pool_size: 1,
+  busy_timeout: 5_000,
   stacktrace: true,
   show_sensitive_data_on_connection_error: true
 

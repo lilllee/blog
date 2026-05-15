@@ -33,41 +33,11 @@ defmodule Blog.NoteData do
     |> Repo.all()
   end
 
-  def search_notes(query_string), do: list_notes(%{query: query_string})
-
   def list_recent(limit \\ 50) do
     Note
     |> where([n], n.status == "published" and is_nil(n.deleted_at))
     |> order_recent()
     |> limit(^limit)
-    |> Repo.all()
-  end
-
-  def timeline_recent_activity(limit \\ 5) when is_integer(limit) and limit > 0 do
-    Note
-    |> published_base()
-    |> order_recent()
-    |> select_timeline_fields()
-    |> limit(^limit)
-    |> Repo.all()
-  end
-
-  def timeline_year_archive do
-    Note
-    |> published_base()
-    |> order_recent()
-    |> select_timeline_fields()
-    |> Repo.all()
-  end
-
-  def timeline_tag_timeline(tag) do
-    tag = String.trim(to_string(tag))
-
-    Note
-    |> published_base()
-    |> maybe_filter_tag(tag)
-    |> order_recent()
-    |> select_timeline_fields()
     |> Repo.all()
   end
 
@@ -215,21 +185,6 @@ defmodule Blog.NoteData do
   defp maybe_filter_tag(query, tag) do
     escaped = escape_like(tag)
     where(query, [note], like(note.tags, ^"%#{escaped}%"))
-  end
-
-  defp published_base(query) do
-    where(query, [n], n.status == "published" and is_nil(n.deleted_at))
-  end
-
-  defp select_timeline_fields(query) do
-    select(query, [n], %{
-      id: n.id,
-      slug: n.slug,
-      title: n.title,
-      tags: n.tags,
-      published_at: n.published_at,
-      inserted_at: n.inserted_at
-    })
   end
 
   defp order_recent(query) do

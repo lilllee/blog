@@ -47,12 +47,27 @@ defmodule BlogWeb.Admin.PostEditLive do
     save_note(socket.assigns.live_action, socket.assigns.note, attrs, socket)
   end
 
+  def handle_event("delete", _, socket) do
+    case socket.assigns.note do
+      %Note{id: id} when not is_nil(id) ->
+        {:ok, _} = NoteData.soft_delete_note(socket.assigns.note)
+
+        {:noreply,
+         socket
+         |> put_flash(:info, "post deleted")
+         |> push_navigate(to: ~p"/admin/posts")}
+
+      _ ->
+        {:noreply, socket}
+    end
+  end
+
   defp save_note(:new, _note, attrs, socket) do
     case NoteData.create_note(attrs) do
       {:ok, _note} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Post created")
+         |> put_flash(:info, "post created")
          |> push_navigate(to: ~p"/admin/posts")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -65,7 +80,7 @@ defmodule BlogWeb.Admin.PostEditLive do
       {:ok, _note} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Post updated")
+         |> put_flash(:info, "post updated")
          |> push_navigate(to: ~p"/admin/posts")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -76,99 +91,147 @@ defmodule BlogWeb.Admin.PostEditLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="px-6 py-6 space-y-6">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-xs uppercase tracking-wide text-muted-foreground">Admin</p>
+    <.link navigate={~p"/admin/posts"} class="back">← posts</.link>
 
-          <h1 class="text-2xl font-bold text-foreground"><%= @page_title %></h1>
-        </div>
+    <div class="admin-head">
+      <h1><%= if @live_action == :new, do: "new post", else: "edit post" %></h1>
+      <span :if={@live_action == :edit} class="crumb">
+        <%= @note.status %><%= if date = @note.published_at || @note.inserted_at,
+          do: " · " <> format_date(date) %>
+      </span>
+    </div>
 
-        <.link
-          navigate={~p"/admin/posts"}
-          class="text-sm font-semibold text-muted-foreground hover:text-foreground"
-        >
-          ← Back to posts
-        </.link>
+    <.form
+      :let={f}
+      for={@changeset}
+      as={:note}
+      phx-change="validate"
+      phx-submit="save"
+      class="form"
+      multipart
+    >
+      <div class="field title-field">
+        <label for={f[:title].id}>title</label>
+        <input
+          type="text"
+          name={f[:title].name}
+          id={f[:title].id}
+          value={Phoenix.HTML.Form.normalize_value("text", f[:title].value)}
+          placeholder="제목"
+        />
+        <p :for={msg <- errors(f[:title])} class="error"><%= msg %></p>
       </div>
 
-      <.simple_form
-        :let={f}
-        for={@changeset}
-        id="post-form"
-        as={:note}
-        phx-change="validate"
-        phx-submit="save"
-        multipart
-      >
-        <.input field={f[:title]} label="Title" />
-        <div class="space-y-2">
-          <label class="block text-sm font-semibold leading-6 text-foreground">
-            Cover image upload
-          </label>
-          <.live_file_input upload={@uploads.image} class="block w-full text-sm" />
-          <p class="text-xs text-muted-foreground">
-            Saves to <code>priv/static/images/uploads</code>
-            and stores <code>uploads/&lt;filename&gt;</code>
-            in <code>image_path</code>.
+      <div class="field">
+        <label for={f[:tags].id}>tags</label>
+        <input
+          type="text"
+          name={f[:tags].name}
+          id={f[:tags].id}
+          value={Phoenix.HTML.Form.normalize_value("text", f[:tags].value)}
+          placeholder="쉼표로 구분 — writing, web, elixir"
+        />
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for={f[:series_id].id}>series</label>
+          <input
+            type="text"
+            name={f[:series_id].name}
+            id={f[:series_id].id}
+            value={Phoenix.HTML.Form.normalize_value("text", f[:series_id].value)}
+            placeholder="series id (optional)"
+          />
+        </div>
+        <div class="field">
+          <label for={f[:series_order].id}>series order</label>
+          <input
+            type="number"
+            name={f[:series_order].name}
+            id={f[:series_order].id}
+            value={Phoenix.HTML.Form.normalize_value("number", f[:series_order].value)}
+            placeholder="2"
+          />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>cover image</label>
+        <.live_file_input upload={@uploads.image} />
+        <p class="hint">priv/static/images/uploads 에 저장됩니다.</p>
+        <%= for entry <- @uploads.image.entries do %>
+          <p class="hint"><%= entry.client_name %> — <%= entry.progress %>%</p>
+          <p :for={err <- upload_errors(@uploads.image, entry)} class="error">
+            <%= upload_error_to_string(err) %>
           </p>
-          <%= for entry <- @uploads.image.entries do %>
-            <div class="flex items-center gap-3">
-              <div class="h-14 w-20 overflow-hidden rounded-md border border-border bg-muted">
-                <.live_img_preview entry={entry} class="h-full w-full object-cover" />
-              </div>
-              <div class="flex-1">
-                <p class="text-xs text-muted-foreground"><%= entry.client_name %></p>
-                <progress class="w-full" value={entry.progress} max="100">
-                  <%= entry.progress %>%
-                </progress>
-                <%= for err <- upload_errors(@uploads.image, entry) do %>
-                  <p class="text-xs text-rose-600"><%= upload_error_to_string(err) %></p>
-                <% end %>
-              </div>
-            </div>
-          <% end %>
-          <%= for err <- upload_errors(@uploads.image) do %>
-            <p class="text-xs text-rose-600"><%= upload_error_to_string(err) %></p>
-          <% end %>
-        </div>
+        <% end %>
+        <p :for={err <- upload_errors(@uploads.image)} class="error">
+          <%= upload_error_to_string(err) %>
+        </p>
+      </div>
 
-        <.input field={f[:image_path]} label="Cover image path (manual)" />
-        <.input field={f[:tags]} label="Tags (comma-separated)" />
-        <.input field={f[:categories]} label="Categories" />
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <.input field={f[:series_id]} label="Series ID" />
-          <.input field={f[:series_order]} type="number" label="Series order" />
-        </div>
+      <div class="field">
+        <label for={f[:image_path].id}>cover image path (manual)</label>
+        <input
+          type="text"
+          name={f[:image_path].name}
+          id={f[:image_path].id}
+          value={Phoenix.HTML.Form.normalize_value("text", f[:image_path].value)}
+          placeholder="uploads/filename.png"
+        />
+      </div>
 
-        <.input
-          field={f[:status]}
-          type="select"
-          label="Status"
-          prompt="Select status"
-          options={[{"Draft", "draft"}, {"Published", "published"}]}
-        /> <.input field={f[:content]} type="textarea" label="Markdown" class="min-h-[240px]" />
-        <:actions>
-          <div class="flex gap-3">
-            <.button type="submit" name="status" value="draft">Save draft</.button>
+      <div class="field">
+        <label for={f[:content].id}>markdown</label>
+        <textarea
+          name={f[:content].name}
+          id={f[:content].id}
+          spellcheck="false"
+          placeholder="# 제목&#10;&#10;본문…"
+        ><%= Phoenix.HTML.Form.normalize_value("textarea", f[:content].value) %></textarea>
+        <p :for={msg <- errors(f[:content])} class="error"><%= msg %></p>
+      </div>
 
-            <.button
-              type="submit"
-              name="status"
-              value="published"
-              class="bg-emerald-600 hover:bg-emerald-500"
-            >
-              Publish
-            </.button>
-          </div>
-        </:actions>
-      </.simple_form>
-    </div>
+      <div class="form-actions">
+        <button type="submit" name="status" value="draft">save draft</button>
+        <button type="submit" name="status" value="published" class="primary">publish</button>
+        <span class="spacer"></span>
+        <button
+          :if={@live_action == :edit}
+          type="button"
+          phx-click="delete"
+          data-confirm="삭제할까요?"
+        >
+          delete
+        </button>
+      </div>
+    </.form>
     """
   end
 
-  defp page_title(:new), do: "New post"
-  defp page_title(:edit), do: "Edit post"
+  defp page_title(:new), do: "new post · admin"
+  defp page_title(:edit), do: "edit post · admin"
+
+  defp errors(field) do
+    if Phoenix.Component.used_input?(field) do
+      Enum.map(field.errors, fn {msg, opts} ->
+        Enum.reduce(opts, msg, fn {k, v}, acc ->
+          String.replace(acc, "%{#{k}}", to_string(v))
+        end)
+      end)
+    else
+      []
+    end
+  end
+
+  defp format_date(%DateTime{} = d), do: Calendar.strftime(d, "%Y.%m.%d")
+
+  defp format_date(%NaiveDateTime{} = d) do
+    d |> DateTime.from_naive!("Etc/UTC") |> format_date()
+  end
+
+  defp format_date(_), do: ""
 
   defp maybe_put_uploaded_image(attrs, socket) do
     paths =
@@ -182,8 +245,8 @@ defmodule BlogWeb.Admin.PostEditLive do
     end
   end
 
-  defp upload_error_to_string(:too_large), do: "File too large"
-  defp upload_error_to_string(:too_many_files), do: "Too many files"
-  defp upload_error_to_string(:not_accepted), do: "Unaccepted file type"
-  defp upload_error_to_string(other), do: "Upload error: #{inspect(other)}"
+  defp upload_error_to_string(:too_large), do: "file too large"
+  defp upload_error_to_string(:too_many_files), do: "too many files"
+  defp upload_error_to_string(:not_accepted), do: "unaccepted file type"
+  defp upload_error_to_string(other), do: "upload error: #{inspect(other)}"
 end

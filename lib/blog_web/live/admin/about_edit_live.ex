@@ -1,412 +1,250 @@
 defmodule BlogWeb.Admin.AboutEditLive do
   @moduledoc """
-  Admin interface for editing resume/about page content.
-
-  Features a tabbed interface for organizing different resume sections.
-  Header section uses individual inputs, while structured sections use JSON textareas.
+  Admin interface for editing the about/resume content. Underline-style form
+  with tab-link sections.
   """
 
   use BlogWeb, :live_view
 
   alias Blog.ResumeData
 
+  @tabs ~w(header summary skills experience projects education additional)
+
   @impl true
   def mount(_params, _session, socket) do
-    case ResumeData.get_resume_for_edit() do
-      {:ok, resume_data} ->
-        {:ok,
-         assign(socket,
-           resume_data: resume_data,
-           active_section: "header",
-           page_title: "Edit About"
-         )}
-
-      {:error, _} ->
-        {:ok,
-         assign(socket,
-           resume_data: %{},
-           active_section: "header",
-           page_title: "Edit About"
-         )}
-    end
+    {:ok,
+     assign(socket,
+       resume_data: load_resume(),
+       active_tab: "header",
+       tabs: @tabs,
+       page_title: "edit about · admin"
+     )}
   end
 
   @impl true
-  def handle_event("change_section", %{"section" => section}, socket) do
-    {:noreply, assign(socket, :active_section, section)}
-  end
-
-  def handle_event("validate", _params, socket) do
-    # Just acknowledge validation, no complex changeset needed for JSON forms
-    {:noreply, socket}
+  def handle_event("change_tab", %{"tab" => tab}, socket) when tab in @tabs do
+    {:noreply, assign(socket, :active_tab, tab)}
   end
 
   def handle_event("save", %{"resume" => resume_params}, socket) do
-    # Parse JSON strings from textarea inputs and merge with existing data
     attrs = parse_resume_params(resume_params, socket.assigns.resume_data)
 
     case ResumeData.update_resume(attrs) do
       {:ok, _resume} ->
-        # Reload the resume data
-        case ResumeData.get_resume_for_edit() do
-          {:ok, resume_data} ->
-            {:noreply,
-             socket
-             |> assign(:resume_data, resume_data)
-             |> put_flash(:info, "Resume updated successfully")}
-
-          {:error, _} ->
-            {:noreply,
-             socket
-             |> put_flash(:info, "Resume updated successfully")}
-        end
-
-      {:error, _changeset} ->
         {:noreply,
          socket
-         |> put_flash(:error, "Failed to update resume. Check your JSON syntax.")}
+         |> assign(:resume_data, load_resume())
+         |> put_flash(:info, "saved")}
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, "JSON 형식 오류")}
+    end
+  end
+
+  defp load_resume do
+    case ResumeData.get_resume_for_edit() do
+      {:ok, data} -> data
+      _ -> %{}
     end
   end
 
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="px-6 py-6 space-y-6">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-xs uppercase tracking-wide text-muted-foreground">Admin</p>
+    <.link navigate={~p"/admin/posts"} class="back">← admin</.link>
 
-          <h1 class="text-2xl font-bold text-foreground">Edit About Page</h1>
-        </div>
-
-        <div class="flex gap-3">
-          <.link
-            navigate={~p"/about"}
-            class="text-sm font-semibold text-muted-foreground hover:text-foreground"
-          >
-            View public page
-          </.link>
-
-          <.link
-            navigate={~p"/admin/posts"}
-            class="text-sm font-semibold text-muted-foreground hover:text-foreground"
-          >
-            Back to posts
-          </.link>
-        </div>
-      </div>
-      <!-- Section Tabs -->
-      <div class="border-b border-border">
-        <nav class="-mb-px flex space-x-8">
-          <.section_tab section="header" active={@active_section} label="Header" />
-          <.section_tab section="summary" active={@active_section} label="Summary" />
-          <.section_tab section="skills" active={@active_section} label="Skills" />
-          <.section_tab section="experience" active={@active_section} label="Experience" />
-          <.section_tab section="projects" active={@active_section} label="Projects" />
-          <.section_tab section="education" active={@active_section} label="Education" />
-          <.section_tab section="additional" active={@active_section} label="Additional" />
-        </nav>
-      </div>
-      <!-- Form -->
-      <.form for={%{}} phx-change="validate" phx-submit="save" class="space-y-6">
-        <div class="bg-card rounded-lg p-6 border border-border">
-          <%= case @active_section do %>
-            <% "header" -> %>
-              <.header_section resume_data={@resume_data} />
-            <% "summary" -> %>
-              <.summary_section resume_data={@resume_data} />
-            <% "skills" -> %>
-              <.skills_section resume_data={@resume_data} />
-            <% "experience" -> %>
-              <.experience_section resume_data={@resume_data} />
-            <% "projects" -> %>
-              <.projects_section resume_data={@resume_data} />
-            <% "education" -> %>
-              <.education_section resume_data={@resume_data} />
-            <% "additional" -> %>
-              <.additional_section resume_data={@resume_data} />
-          <% end %>
-        </div>
-
-        <div class="flex justify-end">
-          <.button type="submit">Save changes</.button>
-        </div>
-      </.form>
+    <div class="admin-head">
+      <h1>edit about</h1>
+      <.link navigate={~p"/about"} class="new">view public →</.link>
     </div>
-    """
-  end
 
-  defp section_tab(assigns) do
-    ~H"""
-    <button
-      type="button"
-      phx-click="change_section"
-      phx-value-section={@section}
-      class={[
-        "border-b-2 py-2 px-1 text-sm font-medium",
-        @section == @active &&
-          "border-foreground text-foreground",
-        @section != @active &&
-          "border-transparent text-muted-foreground hover:border-border hover:text-foreground"
-      ]}
-    >
-      <%= @label %>
-    </button>
-    """
-  end
+    <nav class="tabs">
+      <button
+        :for={tab <- @tabs}
+        type="button"
+        phx-click="change_tab"
+        phx-value-tab={tab}
+        class={if @active_tab == tab, do: "current"}
+      ><%= tab %></button>
+    </nav>
 
-  defp header_section(assigns) do
-    assigns = assign(assigns, :header, assigns.resume_data[:header] || %{})
+    <.form for={%{}} phx-submit="save" class="form">
+      <%= case @active_tab do %>
+        <% "header" -> %>
+          <.header_panel header={header(@resume_data)} />
+        <% "summary" -> %>
+          <.summary_panel additional={additional(@resume_data)} />
+        <% "skills" -> %>
+          <.json_panel name="skills" label="skills (json)"
+            hint={~s([{"category":"Languages","items":["Elixir","Python"]}])}
+            value={Jason.encode!(@resume_data[:skills] || [], pretty: true)} />
+        <% "experience" -> %>
+          <.json_panel name="experience" label="experience (json)"
+            hint={~s([{"company","position","start_date","end_date","description_md","location"}])}
+            value={Jason.encode!(@resume_data[:experience] || [], pretty: true)} />
+        <% "projects" -> %>
+          <.json_panel name="projects" label="projects (json)"
+            hint={~s([{"name","url","description_md","tech_stack":[…]}])}
+            value={Jason.encode!(@resume_data[:projects] || [], pretty: true)} />
+        <% "education" -> %>
+          <.json_panel name="education" label="education (json)"
+            hint={~s([{"school","degree","field","start_date","end_date","description_md"}])}
+            value={Jason.encode!(@resume_data[:education] || [], pretty: true)} />
+        <% "additional" -> %>
+          <.additional_panel additional={additional(@resume_data)} />
+      <% end %>
 
-    ~H"""
-    <div class="space-y-4">
-      <h3 class="text-lg font-semibold text-foreground">Contact Information</h3>
-      <.input type="text" name="resume[header][name]" label="Name" value={@header["name"]} />
-      <.input
-        type="text"
-        name="resume[header][title]"
-        label="Professional Title"
-        value={@header["title"]}
-      />
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <.input type="email" name="resume[header][email]" label="Email" value={@header["email"]} />
-        <.input type="text" name="resume[header][phone]" label="Phone" value={@header["phone"]} />
+      <div class="form-actions">
+        <button type="submit" class="primary">save changes</button>
+        <span class="spacer"></span>
+        <.link navigate={~p"/about"}>preview →</.link>
       </div>
+    </.form>
+    """
+  end
 
-      <.input type="text" name="resume[header][location]" label="Location" value={@header["location"]} />
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <.input
-          type="url"
-          name="resume[header][linkedin]"
-          label="LinkedIn URL"
-          value={@header["linkedin"]}
-        />
-        <.input type="url" name="resume[header][github]" label="GitHub URL" value={@header["github"]} />
-        <.input
-          type="url"
-          name="resume[header][website]"
-          label="Website URL"
-          value={@header["website"]}
-        />
+  defp header(data), do: data[:header] || %{}
+  defp additional(data), do: data[:additional] || %{}
+
+  attr :header, :map, required: true
+
+  defp header_panel(assigns) do
+    ~H"""
+    <div class="field">
+      <label for="ah-name">name</label>
+      <input type="text" id="ah-name" name="resume[header][name]" value={@header["name"]} />
+    </div>
+    <div class="field title-field">
+      <label for="ah-title">professional title</label>
+      <input type="text" id="ah-title" name="resume[header][title]" value={@header["title"]} />
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="ah-email">email</label>
+        <input type="text" id="ah-email" name="resume[header][email]" value={@header["email"]} />
+      </div>
+      <div class="field">
+        <label for="ah-phone">phone</label>
+        <input type="text" id="ah-phone" name="resume[header][phone]" value={@header["phone"]} />
       </div>
     </div>
-    """
-  end
-
-  defp summary_section(assigns) do
-    assigns = assign(assigns, :additional, assigns.resume_data[:additional] || %{})
-
-    ~H"""
-    <div class="space-y-4">
-      <h3 class="text-lg font-semibold text-foreground">Professional Summary</h3>
-
-      <p class="text-sm text-muted-foreground">
-        Write a brief professional summary using Markdown formatting.
-      </p>
-
-      <.input
-        type="textarea"
-        name="resume[additional][summary_md]"
-        label="Summary (Markdown)"
-        value={@additional["summary_md"]}
-        class="min-h-[200px] font-mono"
-      />
+    <div class="field">
+      <label for="ah-location">location</label>
+      <input type="text" id="ah-location" name="resume[header][location]" value={@header["location"]} />
     </div>
-    """
-  end
-
-  defp skills_section(assigns) do
-    assigns = assign(assigns, :skills, assigns.resume_data[:skills] || [])
-
-    ~H"""
-    <div class="space-y-4">
-      <h3 class="text-lg font-semibold text-foreground">Skills</h3>
-
-      <p class="text-sm text-muted-foreground">
-        Edit as JSON array. Format:
-        <code class="bg-muted px-1 rounded">
-          [{"category": "Languages", "items": ["Elixir", "Python"]}]
-        </code>
-      </p>
-
-      <.input
-        type="textarea"
-        name="resume[skills]"
-        label="Skills (JSON)"
-        value={Jason.encode!(@skills, pretty: true)}
-        class="min-h-[300px] font-mono text-sm"
-      />
-    </div>
-    """
-  end
-
-  defp experience_section(assigns) do
-    assigns = assign(assigns, :experience, assigns.resume_data[:experience] || [])
-
-    ~H"""
-    <div class="space-y-4">
-      <h3 class="text-lg font-semibold text-foreground">Work Experience</h3>
-
-      <p class="text-sm text-muted-foreground">
-        Edit as JSON array. Format:
-        <code class="bg-muted px-1 rounded text-xs">
-          [{"company": "...", "position": "...", "start_date": "...", "end_date": "...", "description_md": "...", "location": "..."}]
-        </code>
-      </p>
-
-      <.input
-        type="textarea"
-        name="resume[experience]"
-        label="Experience (JSON)"
-        value={Jason.encode!(@experience, pretty: true)}
-        class="min-h-[400px] font-mono text-sm"
-      />
-    </div>
-    """
-  end
-
-  defp projects_section(assigns) do
-    assigns = assign(assigns, :projects, assigns.resume_data[:projects] || [])
-
-    ~H"""
-    <div class="space-y-4">
-      <h3 class="text-lg font-semibold text-foreground">Projects</h3>
-
-      <p class="text-sm text-muted-foreground">
-        Edit as JSON array. Format:
-        <code class="bg-muted px-1 rounded text-xs">
-          [{"name": "...", "url": "...", "description_md": "...", "tech_stack": ["...", "..."]}]
-        </code>
-      </p>
-
-      <.input
-        type="textarea"
-        name="resume[projects]"
-        label="Projects (JSON)"
-        value={Jason.encode!(@projects, pretty: true)}
-        class="min-h-[400px] font-mono text-sm"
-      />
-    </div>
-    """
-  end
-
-  defp education_section(assigns) do
-    assigns = assign(assigns, :education, assigns.resume_data[:education] || [])
-
-    ~H"""
-    <div class="space-y-4">
-      <h3 class="text-lg font-semibold text-foreground">Education</h3>
-
-      <p class="text-sm text-muted-foreground">
-        Edit as JSON array. Format:
-        <code class="bg-muted px-1 rounded text-xs">
-          [{"school": "...", "degree": "...", "field": "...", "start_date": "...", "end_date": "...", "description_md": "..."}]
-        </code>
-      </p>
-
-      <.input
-        type="textarea"
-        name="resume[education]"
-        label="Education (JSON)"
-        value={Jason.encode!(@education, pretty: true)}
-        class="min-h-[300px] font-mono text-sm"
-      />
-    </div>
-    """
-  end
-
-  defp additional_section(assigns) do
-    additional = assigns.resume_data[:additional] || %{}
-
-    assigns =
-      assigns
-      |> assign(:additional, additional)
-      |> assign(:certs, additional["certifications"] || [])
-      |> assign(:langs, additional["languages"] || [])
-      |> assign(:interests, additional["interests"] || [])
-
-    ~H"""
-    <div class="space-y-6">
-      <h3 class="text-lg font-semibold text-foreground">Additional Information</h3>
-
-      <div>
-        <p class="text-sm text-muted-foreground mb-2">
-          Certifications (JSON array of strings)
-        </p>
-
-        <.input
-          type="textarea"
-          name="resume[additional][certifications]"
-          label="Certifications"
-          value={Jason.encode!(@certs, pretty: true)}
-          class="min-h-[100px] font-mono text-sm"
-        />
+    <div class="field-row">
+      <div class="field">
+        <label for="ah-github">github</label>
+        <input type="text" id="ah-github" name="resume[header][github]" value={@header["github"]} />
       </div>
-
-      <div>
-        <p class="text-sm text-muted-foreground mb-2">
-          Languages (JSON array of strings)
-        </p>
-
-        <.input
-          type="textarea"
-          name="resume[additional][languages]"
-          label="Languages"
-          value={Jason.encode!(@langs, pretty: true)}
-          class="min-h-[100px] font-mono text-sm"
-        />
-      </div>
-
-      <div>
-        <p class="text-sm text-muted-foreground mb-2">
-          Interests (JSON array of strings)
-        </p>
-
-        <.input
-          type="textarea"
-          name="resume[additional][interests]"
-          label="Interests"
-          value={Jason.encode!(@interests, pretty: true)}
-          class="min-h-[100px] font-mono text-sm"
-        />
+      <div class="field">
+        <label for="ah-linkedin">linkedin</label>
+        <input type="text" id="ah-linkedin" name="resume[header][linkedin]" value={@header["linkedin"]} />
       </div>
     </div>
+    <div class="field">
+      <label for="ah-website">website</label>
+      <input type="text" id="ah-website" name="resume[header][website]" value={@header["website"]} />
+    </div>
     """
   end
 
-  defp parse_resume_params(params, existing_data) do
-    # Only update fields that are present in params
-    # This prevents clearing other sections when saving one section
+  attr :additional, :map, required: true
+
+  defp summary_panel(assigns) do
+    ~H"""
+    <p class="hint top">간단한 자기소개를 markdown으로.</p>
+    <div class="field">
+      <label for="ah-summary">summary (markdown)</label>
+      <textarea id="ah-summary" name="resume[additional][summary_md]" spellcheck="false"><%= @additional["summary_md"] %></textarea>
+    </div>
+    """
+  end
+
+  attr :additional, :map, required: true
+
+  defp additional_panel(assigns) do
+    ~H"""
+    <div class="field">
+      <label for="ah-certs">certifications (json array of strings)</label>
+      <textarea
+        id="ah-certs"
+        name="resume[additional][certifications]"
+        spellcheck="false"
+        style="min-height:120px"
+      ><%= Jason.encode!(@additional["certifications"] || [], pretty: true) %></textarea>
+    </div>
+    <div class="field">
+      <label for="ah-langs">languages (json array of strings)</label>
+      <textarea
+        id="ah-langs"
+        name="resume[additional][languages]"
+        spellcheck="false"
+        style="min-height:120px"
+      ><%= Jason.encode!(@additional["languages"] || [], pretty: true) %></textarea>
+    </div>
+    <div class="field">
+      <label for="ah-interests">interests (json array of strings)</label>
+      <textarea
+        id="ah-interests"
+        name="resume[additional][interests]"
+        spellcheck="false"
+        style="min-height:120px"
+      ><%= Jason.encode!(@additional["interests"] || [], pretty: true) %></textarea>
+    </div>
+    """
+  end
+
+  attr :name, :string, required: true
+  attr :label, :string, required: true
+  attr :hint, :string, required: true
+  attr :value, :string, required: true
+
+  defp json_panel(assigns) do
+    ~H"""
+    <p class="hint top">JSON 배열. <code><%= @hint %></code></p>
+    <div class="field">
+      <label for={"ah-" <> @name}><%= @label %></label>
+      <textarea
+        id={"ah-" <> @name}
+        name={"resume[" <> @name <> "]"}
+        spellcheck="false"
+      ><%= @value %></textarea>
+    </div>
+    """
+  end
+
+  defp parse_resume_params(params, existing) do
     %{
       header:
         if(Map.has_key?(params, "header"),
           do: params["header"],
-          else: existing_data[:header] || %{}
+          else: existing[:header] || %{}
         ),
       skills:
         if(Map.has_key?(params, "skills"),
           do: parse_json_field(params["skills"], []),
-          else: existing_data[:skills] || []
+          else: existing[:skills] || []
         ),
       experience:
         if(Map.has_key?(params, "experience"),
           do: parse_json_field(params["experience"], []),
-          else: existing_data[:experience] || []
+          else: existing[:experience] || []
         ),
       projects:
         if(Map.has_key?(params, "projects"),
           do: parse_json_field(params["projects"], []),
-          else: existing_data[:projects] || []
+          else: existing[:projects] || []
         ),
       education:
         if(Map.has_key?(params, "education"),
           do: parse_json_field(params["education"], []),
-          else: existing_data[:education] || []
+          else: existing[:education] || []
         ),
       additional:
         if(Map.has_key?(params, "additional"),
           do: parse_additional(params["additional"]),
-          else: existing_data[:additional] || %{}
+          else: existing[:additional] || %{}
         )
     }
   end
@@ -414,7 +252,7 @@ defmodule BlogWeb.Admin.AboutEditLive do
   defp parse_json_field(value, default) when is_binary(value) do
     case Jason.decode(value) do
       {:ok, data} -> data
-      {:error, _} -> default
+      _ -> default
     end
   end
 

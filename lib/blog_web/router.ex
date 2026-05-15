@@ -15,8 +15,7 @@ defmodule BlogWeb.Router do
           "style-src 'self' 'unsafe-inline'; " <>
           "img-src 'self' data: https:; " <>
           "connect-src 'self' wss:; " <>
-          "font-src 'self'; " <>
-          "media-src 'self'"
+          "font-src 'self'"
     }
 
     plug BlogWeb.LocalePlug
@@ -34,12 +33,10 @@ defmodule BlogWeb.Router do
   scope "/", BlogWeb do
     pipe_through :browser
 
-    live_session :public, on_mount: [{BlogWeb.LocaleHook, :default}, BlogWeb.Hooks.MusicPlayer] do
+    live_session :public, on_mount: [{BlogWeb.LocaleHook, :default}] do
       live "/", HomeLive, :index
       live "/posts/:slug", NoteLive, :show
       live "/about", AboutLive, :index
-      live "/search", HomeLive, :search
-      live "/list", HomeLive, :list
     end
 
     # Feed routes
@@ -47,7 +44,6 @@ defmodule BlogWeb.Router do
     get "/sitemap.xml", FeedController, :sitemap
     get "/robots.txt", FeedController, :robots
     get "/images/uploads/*path", UploadController, :image
-    get "/uploads/audio/*path", UploadController, :audio
 
     # Legacy redirects
     get "/posts", RedirectController, :posts_index
@@ -65,21 +61,8 @@ defmodule BlogWeb.Router do
     live "/about", AboutEditLive, :edit
   end
 
-  scope "/admin", BlogWeb do
-    pipe_through [:browser, :admin_auth]
-
-    live_session :admin_music, on_mount: [{BlogWeb.LocaleHook, :default}] do
-      live "/music/manage", MusicManageLive, :index
-    end
-  end
-
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:blog, :dev_routes) do
-    # If you want to use the LiveDashboard in production, you should put
-    # it behind authentication and allow only admins to access it.
-    # If your application does not have an admins-only section yet,
-    # you can use Plug.BasicAuth to set up some basic authentication
-    # as long as you are also using SSL (which you should anyway).
     import Phoenix.LiveDashboard.Router
 
     scope "/dev" do

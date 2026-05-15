@@ -60,6 +60,7 @@ Thumbs.db
 # Local-only env files / keys.
 .env
 .env.*
+!.env.example
 *.pem
 *.key
 
